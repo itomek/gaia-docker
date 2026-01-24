@@ -4,7 +4,6 @@ import os
 import pytest
 from pathlib import Path
 from testcontainers.core.container import DockerContainer
-from testcontainers.core.waiting_strategies import wait_for_logs
 
 
 @pytest.fixture(scope="session")
