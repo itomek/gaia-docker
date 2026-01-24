@@ -6,7 +6,7 @@ Fully isolated Docker container for [AMD GAIA](https://github.com/amd/gaia) deve
 
 - ✅ **Complete Isolation** - GAIA cloned inside container, not bind-mounted
 - ✅ **YOLO Mode Safe** - Destroy and recreate containers freely
-- ✅ **Claude Code Ready** - Interactive OAuth login, credentials persist in volume
+- ✅ **AI IDE Ready** - Configured for Claude Code and Cursor
 - ✅ **Multi-Instance** - Spawn multiple containers from same image
 - ✅ **Zero Security** - Optimized for development speed, not production
 - ✅ **Simple Access** - `docker exec` for instant terminal access
@@ -18,7 +18,7 @@ Fully isolated Docker container for [AMD GAIA](https://github.com/amd/gaia) deve
 
 - Docker and Docker Compose installed
 - GitHub personal access token (for cloning GAIA)
-- Anthropic Claude subscription (for Claude Code)
+- (Optional) Claude Code or Cursor for AI-assisted development
 
 ### 1. Clone This Repository
 
@@ -47,13 +47,19 @@ First startup takes ~2-3 minutes (downloads image, clones GAIA, installs depende
 docker exec -it gaia-dev zsh
 ```
 
-### 5. Login to Claude Code (First Time Only)
+### 5. Using AI IDEs (Optional)
+
+#### Claude Code
 
 ```bash
 claude
 # Follow OAuth login in browser
 # Credentials persist in Docker volume
 ```
+
+#### Cursor
+
+The project includes `.cursorrules` for Cursor AI configuration. Simply open the project in Cursor to use AI features with project-specific context.
 
 ### 6. Start Using GAIA
 
@@ -140,7 +146,8 @@ ls /host
 ┌─────────────────────────────────────────────────────────────┐
 │                     Docker Hub                               │
 │                  itomek/gaia-dev:latest                     │
-│         (Python 3.12 + Node.js + tools + Claude Code)       │
+│      (Python 3.12 + Node.js + tools + Claude Code)          │
+│      Configured for: Claude Code, Cursor                     │
 └─────────────────────────────────────────────────────────────┘
                               │
                               │ docker compose up
@@ -172,6 +179,18 @@ Inside container:
 /source/gaia/           # GAIA repository (cloned at runtime)
 /home/gaia/.claude/     # Claude Code config (persisted in volume)
 /host/                  # Optional host directory mount
+```
+
+In workspace root:
+
+```
+.cursor/
+  rules/
+    index.mdc          # Main project rules (always applied)
+    testing.mdc        # Testing-specific rules (auto-applied to test files)
+    docker.mdc         # Docker/container rules (auto-applied to Docker files)
+    python.mdc         # Python development rules (auto-applied to .py files)
+.cursorignore          # Files to exclude from Cursor analysis
 ```
 
 ## Development Workflow
@@ -230,15 +249,15 @@ SKIP_INSTALL=true docker compose up -d
 
 ```bash
 # Install test dependencies
-pip install -r requirements-dev.txt
+uv sync
 
 # Run all tests
-pytest tests/ -v
+uv run pytest tests/ -v
 
 # Run specific test suite
-pytest tests/test_dockerfile.py -v
-pytest tests/test_entrypoint.py -v
-pytest tests/test_container.py -v -m integration
+uv run pytest tests/test_dockerfile.py -v
+uv run pytest tests/test_entrypoint.py -v
+uv run pytest tests/test_container.py -v -m integration
 ```
 
 ### Run Tests in CI
@@ -343,10 +362,30 @@ Contributions welcome! Please:
 
 MIT License - see [LICENSE](LICENSE) file
 
+## AI IDE Configuration
+
+### Cursor
+
+This project uses the modern `.cursor/rules/` structure with multiple `.mdc` files:
+
+- **`index.mdc`**: Main project rules (always applied) - project overview, architecture, environment variables
+- **`testing.mdc`**: Auto-applies to test files - pytest guidelines, test commands
+- **`docker.mdc`**: Auto-applies to Docker files - container best practices, image architecture
+- **`python.mdc`**: Auto-applies to Python files - uv usage, dependency management, code style
+
+The `.cursorignore` file excludes unnecessary files from AI analysis (git objects, cache, etc.).
+
+**Note**: The old `.cursorrules` single-file format is deprecated in favor of the modular `.cursor/rules/*.mdc` approach.
+
+### Claude Code
+
+Claude Code is pre-installed in the Docker container. OAuth credentials persist in the Docker volume at `/home/gaia/.claude/`.
+
 ## Related Projects
 
 - [AMD GAIA](https://github.com/amd/gaia) - Main GAIA framework
 - [Claude Code](https://claude.ai/code) - Anthropic's CLI tool
+- [Cursor](https://cursor.sh) - AI-powered code editor
 
 ## Support
 

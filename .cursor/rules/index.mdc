@@ -1,0 +1,42 @@
+---
+description: Main project rules for GAIA Docker development
+alwaysApply: true
+---
+
+# GAIA Docker Project Rules
+
+## Project Overview
+This is a Docker containerization project for AMD GAIA (AI framework) development. The project creates an isolated, disposable development environment optimized for "YOLO mode" - where containers can be freely destroyed and recreated.
+
+## Tech Stack
+- **Base**: Docker & Docker Compose
+- **Python**: 3.12+ (managed with uv for fast package installation)
+- **Package Manager**: uv (10-100x faster than pip)
+- **Shell**: zsh (inside container)
+- **Target Application**: AMD GAIA framework
+
+## Key Files
+- `Dockerfile`: Container image definition with Python 3.12, Node.js, and dev tools
+- `docker-compose.yml`: Service configuration with environment variables
+- `entrypoint.sh`: Container startup script (clones GAIA, installs dependencies)
+- `pyproject.toml`: Python project configuration with test dependencies
+- `tests/`: Integration and unit tests using pytest
+
+## Container Architecture
+- GAIA is cloned INSIDE the container (not bind-mounted) for complete isolation
+- Credentials persist in Docker volumes (`/home/gaia/.claude`)
+- Container is designed to be disposable - fast recreation (~2-3 minutes)
+- Uses uv for Python package installation (much faster than pip)
+
+## Environment Variables
+Key env vars in docker-compose.yml:
+- `GITHUB_TOKEN`: Required for cloning GAIA (private repo access)
+- `GAIA_BRANCH`: Branch to clone (default: main)
+- `SKIP_INSTALL`: Skip pip install on restart (for faster iteration)
+- Ports: LEMONADE_PORT (5000), GAIA_API_PORT (8000), WEB_PORT (3000)
+
+## Important Notes
+- This is a development container - optimized for speed, not production security
+- Credentials (Claude Code OAuth) persist in volumes, not in container
+- The container is "YOLO safe" - designed to be destroyed and recreated freely
+- When suggesting changes to Dockerfile or entrypoint.sh, ensure tests still pass

@@ -1,0 +1,37 @@
+---
+description: Docker and container-specific development rules
+globs:
+  - Dockerfile
+  - docker-compose.yml
+  - entrypoint.sh
+---
+
+# Docker Development Rules
+
+## Container Best Practices
+- Minimize image layers
+- Use specific versions for dependencies
+- Keep entrypoint.sh idempotent
+- Test changes with both unit and integration tests
+
+## Image Architecture
+- Base: Python 3.12 slim
+- Includes: Node.js, zsh, git, Claude Code CLI
+- Entrypoint clones GAIA and installs dependencies at runtime
+- Uses uv for 10-100x faster Python package installation
+
+## Multi-Instance Support
+The container is designed to spawn multiple instances:
+- Use environment variables to customize each instance
+- Different ports for LEMONADE, GAIA_API, and WEB
+- Different container names for parallel development
+
+## Volume Management
+- `/home/gaia/.claude`: Persists Claude Code credentials
+- `/source/gaia`: GAIA repository (cloned at startup, not bind-mounted)
+- `/host`: Optional host directory mount for file exchange
+
+## Performance
+- First install: ~2-3 minutes (including git clone)
+- Reinstall with cache: ~30 seconds
+- YOLO reset: ~2-3 minutes (fresh clone + install)

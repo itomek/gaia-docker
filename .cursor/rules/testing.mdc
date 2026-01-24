@@ -1,0 +1,37 @@
+---
+description: Testing guidelines and pytest configuration
+globs:
+  - tests/**/*
+  - "**/*test*.py"
+---
+
+# Testing Rules
+
+## Test Framework
+- Use pytest for all tests
+- Test categories: unit tests (Dockerfile, entrypoint) and integration tests (container)
+- Integration tests require Docker daemon running
+
+## Running Tests
+```bash
+# Install test dependencies
+uv sync
+
+# Run all tests
+uv run pytest tests/ -v
+
+# Run specific test suite
+uv run pytest tests/test_dockerfile.py -v
+uv run pytest tests/test_entrypoint.py -v
+uv run pytest tests/test_container.py -v -m integration
+```
+
+## Test Structure
+- `tests/conftest.py`: Shared fixtures and configuration
+- `tests/test_dockerfile.py`: Dockerfile validation tests
+- `tests/test_entrypoint.py`: Entrypoint script tests
+- `tests/test_container.py`: Integration tests for running containers
+
+## CI/CD
+- Tests run automatically on pull requests via GitHub Actions
+- All tests must pass before merging

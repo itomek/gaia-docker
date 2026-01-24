@@ -1,0 +1,46 @@
+---
+description: Python development and dependency management rules
+globs:
+  - "**/*.py"
+  - pyproject.toml
+  - uv.lock
+---
+
+# Python Development Rules
+
+## Python Version
+- Requires Python 3.12+
+- Managed by uv (fast package installer and resolver)
+
+## Dependency Management
+- Use `uv` for all package operations (not pip)
+- Dependencies defined in `pyproject.toml`
+- Lock file: `uv.lock` (should be committed)
+
+## Package Installation
+```bash
+# Sync dependencies from lock file
+uv sync
+
+# Add new dependency
+uv add package-name
+
+# Add dev dependency
+uv add --dev package-name
+
+# Run commands with uv
+uv run python script.py
+uv run pytest
+```
+
+## Code Style
+- Follow PEP 8 guidelines
+- Use Black for formatting (configured in dev dependencies)
+- Use isort for import sorting (configured in dev dependencies)
+
+## Inside Container
+The container uses `uv pip install` for installing GAIA:
+```bash
+cd /source/gaia
+uv pip install -e ".[dev,mcp,eval,rag]"
+```
