@@ -1,12 +1,12 @@
 ---
-description: Main project rules for GAIA Docker development
+description: Main project rules for GAIA Docker
 alwaysApply: true
 ---
 
 # GAIA Docker Project Rules
 
 ## Project Overview
-This is a Docker containerization project for AMD GAIA (AI framework) development. The project creates an isolated, disposable development environment optimized for "YOLO mode" - where containers can be freely destroyed and recreated.
+This is a Linux Docker container for AMD GAIA (AI framework). GAIA is installed from PyPI at container startup.
 
 ## Tech Stack
 - **Base**: Docker & Docker Compose
@@ -16,26 +16,24 @@ This is a Docker containerization project for AMD GAIA (AI framework) developmen
 - **Target Application**: AMD GAIA framework
 
 ## Key Files
-- `Dockerfile`: Container image definition with Python 3.12, Node.js, and dev tools
+- `Dockerfile`: Container image definition with Python 3.12 and tools
 - `docker-compose.yml`: Service configuration with environment variables
-- `entrypoint.sh`: Container startup script (clones GAIA, installs dependencies)
+- `entrypoint.sh`: Container startup script (installs GAIA from PyPI)
 - `pyproject.toml`: Python project configuration with test dependencies
 - `tests/`: Integration and unit tests using pytest
 
 ## Container Architecture
-- GAIA is cloned INSIDE the container (not bind-mounted) for complete isolation
-- Credentials persist in Docker volumes (`/home/gaia/.claude`)
-- Container is designed to be disposable - fast recreation (~2-3 minutes)
+- GAIA is installed from PyPI at startup
+- Container is isolated and reproducible
 - Uses uv for Python package installation (much faster than pip)
 
 ## Environment Variables
 Key env vars in docker-compose.yml:
-- `GAIA_BRANCH`: Branch to clone (default: main)
-- `SKIP_INSTALL`: Skip pip install on restart (for faster iteration)
+- `LEMONADE_URL`: Lemonade server URL (default: http://localhost:5000/api/v1)
+- `GAIA_VERSION`: GAIA version to install from PyPI
+- `SKIP_INSTALL`: Skip pip install on restart (faster startup)
 - Ports: LEMONADE_PORT (5000), GAIA_API_PORT (8000), WEB_PORT (3000)
 
 ## Important Notes
-- This is a development container - optimized for speed, not production security
-- Credentials (Claude Code OAuth) persist in volumes, not in container
-- The container is "YOLO safe" - designed to be destroyed and recreated freely
+- This is a Linux container for GAIA
 - When suggesting changes to Dockerfile or entrypoint.sh, ensure tests still pass

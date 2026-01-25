@@ -1,7 +1,7 @@
 [project]
 name = "gaia-docker"
 version = "0.1.0"
-description = "Docker container with MCP servers for Claude Code"
+description = "GAIA Linux container image"
 requires-python = ">=3.12"
 dependencies = []
 

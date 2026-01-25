@@ -25,37 +25,13 @@ class TestEntrypointScript:
         assert "set -e" in content
 
 
-class TestGitCloning:
-    """Test GAIA repository cloning functionality."""
-
-    @pytest.mark.integration
-    def test_clones_gaia_repo(self, container_exec):
-        """Should clone GAIA repository on startup."""
-        result = container_exec("test -d /source/gaia/.git")
-        assert result.exit_code == 0
-
-    @pytest.mark.integration
-    def test_uses_correct_branch(self, container_exec):
-        """Should clone specified branch."""
-        result = container_exec("cd /source/gaia && git branch --show-current")
-        assert "main" in result.output.decode()
-
-    @pytest.mark.integration
-    def test_shallow_clone(self, container_exec):
-        """Should use shallow clone (--depth 1) for speed."""
-        result = container_exec("cd /source/gaia && git rev-list --count HEAD")
-        # Shallow clone should have limited history
-        count = int(result.output.decode().strip())
-        assert count < 100, "Clone not shallow (has too much history)"
-
-
 class TestDependencyInstallation:
     """Test GAIA dependency installation."""
 
     @pytest.mark.integration
     def test_gaia_installed(self, container_exec):
         """Should install GAIA package."""
-        result = container_exec("python -c 'import gaia; print(gaia.__version__)'")
+        result = container_exec("python -c 'import gaia'")
         assert result.exit_code == 0
 
     @pytest.mark.integration
@@ -74,32 +50,20 @@ class TestDependencyInstallation:
 class TestEnvironmentConfiguration:
     """Test environment variable handling."""
 
-    def test_respects_gaia_branch_env(self, entrypoint_path):
-        """Should respect GAIA_BRANCH environment variable."""
+    def test_respects_gaia_version_env(self, entrypoint_path):
+        """Should respect GAIA_VERSION environment variable."""
         content = entrypoint_path.read_text()
-        assert 'GAIA_BRANCH="${GAIA_BRANCH:-main}"' in content
+        assert 'GAIA_VERSION="${GAIA_VERSION:-0.15.1}"' in content
 
-    def test_respects_gaia_repo_env(self, entrypoint_path):
-        """Should respect GAIA_REPO environment variable."""
+    def test_respects_lemonade_url_env(self, entrypoint_path):
+        """Should respect LEMONADE_URL environment variable."""
         content = entrypoint_path.read_text()
-        assert 'GAIA_REPO=' in content
-        assert 'github.com/amd/gaia' in content
+        assert 'LEMONADE_URL="${LEMONADE_URL:-http://localhost:5000/api/v1}"' in content
 
     def test_respects_skip_install_env(self, entrypoint_path):
         """Should respect SKIP_INSTALL environment variable."""
         content = entrypoint_path.read_text()
         assert 'SKIP_INSTALL' in content
-
-
-class TestGitHubTokenHandling:
-    """Test GitHub token configuration."""
-
-    def test_no_github_token_needed(self, entrypoint_path):
-        """Should not require GitHub token for public repos."""
-        content = entrypoint_path.read_text()
-        # Entrypoint should work without GitHub token
-        assert "No GitHub token needed" in content or "public" in content.lower()
-
 
 class TestHostDirectoryMount:
     """Test optional host directory mounting."""

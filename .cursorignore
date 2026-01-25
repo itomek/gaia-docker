@@ -37,9 +37,6 @@ Thumbs.db
 # Logs
 *.log
 
-# Docker volumes (if mounted locally)
-.claude/
-
 # Build artifacts
 dist/
 build/

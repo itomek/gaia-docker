@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-# GAIA Development Container Entrypoint
-# Clones GAIA repository and installs dependencies at runtime
+# GAIA Linux Container Entrypoint
+# Installs GAIA from PyPI at runtime
 
-echo "=== GAIA Development Container ==="
+echo "=== GAIA Linux Container ==="
 
 # Configuration from environment variables
 GAIA_VERSION="${GAIA_VERSION:-0.15.1}"
@@ -28,10 +28,9 @@ export LEMONADE_URL
 echo "Lemonade server: $LEMONADE_URL"
 
 echo ""
-echo "=== Ready for development ==="
+echo "=== Ready ==="
 echo ""
 echo "GAIA version: $GAIA_VERSION"
-echo "Claude Code: Run 'claude' to start (OAuth login on first use)"
 echo "Access: docker exec -it <container> zsh"
 echo ""
 

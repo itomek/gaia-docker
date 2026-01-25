@@ -1,7 +1,8 @@
 """Pytest fixtures for GAIA Docker tests."""
 
-import os
 import pytest
+import subprocess
+import time
 from pathlib import Path
 from testcontainers.core.container import DockerContainer
 
@@ -27,19 +28,29 @@ def entrypoint_path(project_root):
 @pytest.fixture(scope="module")
 def gaia_container(project_root):
     """Build and start GAIA container for integration tests."""
+    subprocess.run(
+        ["docker", "build", "-t", "gaia-dev:test", str(project_root)],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=600
+    )
     container = (
-        DockerContainer(str(project_root))
-        .with_env("GAIA_BRANCH", "main")
+        DockerContainer("gaia-dev:test")
         .with_env("SKIP_INSTALL", "false")
         .with_command("sleep infinity")
     )
 
     with container:
         # Wait for entrypoint to complete
-        container.get_wrapped_container().wait(
-            condition="Ready for development",
-            timeout=300
-        )
+        start = time.time()
+        while time.time() - start < 300:
+            logs = container.get_wrapped_container().logs().decode("utf-8", errors="ignore")
+            if "=== Ready ===" in logs:
+                break
+            time.sleep(1)
+        else:
+            raise TimeoutError("Container did not become ready within 300 seconds")
         yield container
 
 

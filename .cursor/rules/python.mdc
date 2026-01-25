@@ -41,6 +41,5 @@ uv run pytest
 ## Inside Container
 The container uses `uv pip install` for installing GAIA:
 ```bash
-cd /source/gaia
-uv pip install -e ".[dev,mcp,eval,rag]"
+uv pip install --system "amd-gaia[dev,mcp,eval,rag]==<version>"
 ```

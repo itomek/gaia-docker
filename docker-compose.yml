@@ -20,21 +20,12 @@ services:
       # Lemonade server URL (defaults to localhost:5000)
       - LEMONADE_URL=${LEMONADE_URL:-http://localhost:5000/api/v1}
 
-      # GAIA source configuration
-      - GAIA_BRANCH=${GAIA_BRANCH:-main}
-      - GAIA_REPO=${GAIA_REPO:-https://github.com/amd/gaia.git}
-
       # Optional: Skip pip install (for faster restarts)
       - SKIP_INSTALL=${SKIP_INSTALL:-false}
 
-    # Volume mounts
-    volumes:
-      # Persist Claude Code config and credentials
-      - gaia-claude-config:/home/gaia/.claude
-
-      # Optional: Mount host directory for file exchange
-      # Uncomment and set HOST_DIR in .env to enable:
-      # - "${HOST_DIR}:/host"
+    # Optional: Mount host directory for file exchange
+    # Uncomment and set HOST_DIR in your shell to enable:
+    # - "${HOST_DIR}:/host"
 
     # Keep container running
     tty: true
@@ -47,7 +38,3 @@ services:
           cpus: '4'
           memory: 8G
 
-# Named volumes for persistent data
-volumes:
-  gaia-claude-config:
-    name: ${CONTAINER_NAME:-gaia-dev}-claude-config

@@ -1,6 +1,6 @@
-# GAIA Docker - Isolated Development Container
+# GAIA Docker - Linux Container
 
-Fully isolated Docker container for [AMD GAIA](https://github.com/amd/gaia) development with Claude Code support.
+GAIA Linux container for [AMD GAIA](https://github.com/amd/gaia). GAIA is installed from PyPI at startup.
 
 **Current GAIA Version**: 0.15.1 (matches PyPI `amd-gaia` package)
 
@@ -8,10 +8,7 @@ Fully isolated Docker container for [AMD GAIA](https://github.com/amd/gaia) deve
 
 - ✅ **Complete Isolation** - GAIA installed from PyPI inside container
 - ✅ **Version Pinned** - Images tagged with GAIA version (currently 0.15.1)
-- ✅ **YOLO Mode Safe** - Destroy and recreate containers freely
-- ✅ **AI IDE Ready** - Configured for Claude Code and Cursor
 - ✅ **Multi-Instance** - Spawn multiple containers from same image
-- ✅ **Zero Security** - Optimized for development speed, not production
 - ✅ **Simple Access** - `docker exec` for instant terminal access
 - ✅ **Fast Installation** - Uses `uv` for 10-100x faster Python package installation
 - ✅ **Docker Hub Ready** - Published as `itomek/gaia-dev:<version>` for easy deployment
@@ -85,13 +82,8 @@ services:
       - "5000:5000"
       - "8000:8000"
       - "3000:3000"
-    volumes:
-      - gaia-claude-config:/home/gaia/.claude
     tty: true
     stdin_open: true
-
-volumes:
-  gaia-claude-config:
 ```
 
 Then run:
@@ -109,19 +101,14 @@ docker exec -it gaia-dev zsh
 ### 4. Start Using GAIA
 
 ```bash
-# Test GAIA (already installed from PyPI)
 gaia --version
-
-# Use GAIA LLM (requires Lemonade server)
-gaia llm "Hello, world!"
-
-# Start GAIA chat
-gaia chat
 ```
+
+For the rest of GAIA usage, see https://github.com/AMD/GAIA
 
 ## Environment Variables
 
-You can configure the container using environment variables. Set them using the `-e` flag with `docker run` or in your `docker-compose.yml`.
+You can configure the container using environment variables. Set them using the `-e` flag with `docker run` or inline with `docker compose`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -142,34 +129,26 @@ docker run -d \
   itomek/gaia-dev:0.15.1
 ```
 
-**With docker-compose.yml:**
-```yaml
-services:
-  gaia-dev:
-    image: itomek/gaia-dev:0.15.1
-    environment:
-      - LEMONADE_URL=https://your-server.com/api/v1
-    ports:
-      - "5000:5000"
-      - "8000:8000"
-      - "3000:3000"
-```
-
-**Using .env file with docker-compose:**
+**With docker compose:**
 ```bash
-# Create .env file
-echo "LEMONADE_URL=https://your-server.com/api/v1" > .env
-
-# docker-compose automatically reads .env
-docker compose up -d
+LEMONADE_URL=https://your-server.com/api/v1 docker compose up -d
 ```
 
 ### Lemonade URL Examples
 
+Start your Lemonade server separately, then set `LEMONADE_URL` to its API endpoint.
+
 - **Default (Lemonade in container)**: `http://localhost:5000/api/v1`
 - **Remote server**: `https://your-remote-server.com/api/v1`
-- **Local server on host (macOS)**: `http://host.docker.internal:5000/api/v1`
-- **Local server on host (Linux)**: `http://172.17.0.1:5000/api/v1`
+
+### External Lemonade
+
+If you want to use an external Lemonade, add this environment variable.
+
+```bash
+export LEMONADE_URL="https://your-server.com/api/v1"
+source .cshrc
+```
 
 ## Versioning
 
@@ -226,35 +205,6 @@ docker build -t itomek/gaia-dev:0.15.1 .
 
 Follow the same instructions as above, but use your locally built image.
 
-### 5. Using AI IDEs (Optional)
-
-#### Claude Code
-
-```bash
-claude
-# Follow OAuth login in browser
-# Credentials persist in Docker volume
-```
-
-#### Cursor
-
-The project includes `.cursorrules` for Cursor AI configuration. Simply open the project in Cursor to use AI features with project-specific context.
-
-### 6. Start Using GAIA
-
-```bash
-cd /source/gaia
-
-# Test LLM (requires Lemonade server)
-gaia llm "Hello"
-
-# Start chat
-gaia chat
-
-# Use Claude Code
-claude -p "Show me the GAIA architecture"
-```
-
 ## Usage
 
 ### Spawn Multiple Containers
@@ -267,14 +217,12 @@ docker compose up -d
 CONTAINER_NAME=gaia-feature \
 LEMONADE_PORT=5001 \
 GAIA_API_PORT=8001 \
-GAIA_BRANCH=feature/new-agent \
   docker compose up -d
 
-# Third container (your fork)
+# Third container (different ports)
 CONTAINER_NAME=gaia-myfork \
 LEMONADE_PORT=5002 \
 GAIA_API_PORT=8002 \
-GAIA_REPO=https://github.com/yourname/gaia.git \
   docker compose up -d
 ```
 
@@ -284,7 +232,7 @@ GAIA_REPO=https://github.com/yourname/gaia.git \
 docker exec -it gaia-feature zsh
 ```
 
-### Destroy and Recreate (YOLO Reset)
+### Destroy and Recreate
 
 ```bash
 # Stop and remove
@@ -304,33 +252,13 @@ HOST_DIR=/Users/yourname/Public docker compose up -d
 ls /host
 ```
 
-## Environment Variables
-
-Environment variables can be set in three ways (in order of precedence):
-1. **`.env` file** (recommended) - Project-specific, gitignored, see `.env.example`
-2. **OS environment variables** - `export VAR=value`
-3. **Inline** - `VAR=value docker compose up`
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `LEMONADE_URL` | No | `http://localhost:5000/api/v1` | Lemonade server URL |
-| `GAIA_BRANCH` | No | `main` | Branch to clone |
-| `GAIA_REPO` | No | `https://github.com/amd/gaia.git` | Repository URL |
-| `CONTAINER_NAME` | No | `gaia-dev` | Container name |
-| `LEMONADE_PORT` | No | `5000` | Lemonade server port |
-| `GAIA_API_PORT` | No | `8000` | GAIA API port |
-| `WEB_PORT` | No | `3000` | Web app port |
-| `HOST_DIR` | No | - | Host directory to mount at `/host` |
-| `SKIP_INSTALL` | No | `false` | Skip `pip install` on startup |
-
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Docker Hub                               │
 │                  itomek/gaia-dev:0.15.1                     │
-│      (Python 3.12 + Node.js + tools + Claude Code)          │
-│      Configured for: Claude Code, Cursor                     │
+│      (Python 3.12 + Node.js + tools)                         │
 └─────────────────────────────────────────────────────────────┘
                               │
                               │ docker compose up
@@ -338,19 +266,17 @@ Environment variables can be set in three ways (in order of precedence):
 ┌─────────────────────────────────────────────────────────────┐
 │                   Container Start                            │
 │  1. entrypoint.sh runs                                      │
-│  2. git clone gaia (configurable branch)                    │
-│  3. uv pip install -e ".[dev,mcp,eval,rag]" (fast!)        │
-│  4. Ready for development                                   │
+│  2. uv pip install "amd-gaia[dev,mcp,eval,rag]==<version>"  │
+│  3. Ready                                                   │
 └─────────────────────────────────────────────────────────────┘
                               │
                               │ docker exec -it gaia-dev zsh
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   Development                                │
-│  - Claude Code with OAuth credentials                       │
-│  - Git (public repos, no token needed)                      │
-│  - Full GAIA environment                                    │
-│  - YOLO mode safe (container is disposable)                 │
+│                   GAIA Container                             │
+│  - GAIA installed from PyPI                                 │
+│  - Lemonade URL via env var                                 │
+│  - Isolated Linux environment                               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -359,8 +285,7 @@ Environment variables can be set in three ways (in order of precedence):
 Inside container:
 
 ```
-/source/gaia/           # GAIA repository (cloned at runtime)
-/home/gaia/.claude/     # Claude Code config (persisted in volume)
+/source/                # Working directory
 /host/                  # Optional host directory mount
 ```
 
@@ -374,56 +299,6 @@ In workspace root:
     docker.mdc         # Docker/container rules (auto-applied to Docker files)
     python.mdc         # Python development rules (auto-applied to .py files)
 .cursorignore          # Files to exclude from Cursor analysis
-```
-
-## Development Workflow
-
-### Typical Session
-
-```bash
-# Start container
-docker compose up -d
-
-# Connect
-docker exec -it gaia-dev zsh
-
-# Work with GAIA
-cd /source/gaia
-git checkout -b my-feature
-# ... make changes ...
-git commit -am "Add feature"
-
-# Test with Claude Code
-claude
-# ... interactive session ...
-
-# When done, exit
-exit
-
-# Stop container (keeps volumes)
-docker compose stop
-
-# Or destroy completely
-docker compose down
-```
-
-### Update GAIA Source
-
-```bash
-# Restart container
-docker compose restart
-
-# Or manually inside container
-cd /source/gaia
-git pull origin main
-pip install -e ".[dev]"
-```
-
-### Fast Restarts (Skip Install)
-
-```bash
-# Skip pip install on restart (faster)
-SKIP_INSTALL=true docker compose up -d
 ```
 
 ## Testing
@@ -451,11 +326,8 @@ Tests run automatically on pull requests via GitHub Actions.
 
 The container uses **uv** for Python package installation, which is 10-100x faster than pip:
 
-- **First install**: ~2-3 minutes (including git clone)
+- **First install**: ~2-3 minutes
 - **Reinstall with cache**: ~30 seconds
-- **YOLO reset**: ~2-3 minutes (fresh clone + install)
-
-This makes the YOLO workflow practical for daily use.
 
 ## Troubleshooting
 
@@ -469,16 +341,6 @@ docker compose logs
 docker compose logs
 ```
 
-### Claude Code Not Working
-
-```bash
-# Re-login to Claude
-docker exec -it gaia-dev claude
-
-# Check config persists
-docker exec -it gaia-dev ls -la /home/gaia/.claude
-```
-
 ### GAIA Install Fails
 
 ```bash
@@ -486,7 +348,7 @@ docker exec -it gaia-dev ls -la /home/gaia/.claude
 docker exec -it gaia-dev python --version  # Should be 3.12
 
 # Manually install
-docker exec -it gaia-dev bash -c "cd /source/gaia && pip install -e '.[dev]'"
+docker exec -it gaia-dev bash -c "uv pip install --system 'amd-gaia[dev,mcp,eval,rag]==${GAIA_VERSION}'"
 ```
 
 ### Port Conflicts
@@ -502,37 +364,9 @@ LEMONADE_PORT=5001 GAIA_API_PORT=8001 docker compose up -d
 
 **LEMONADE_URL defaults to `http://localhost:5000/api/v1`** - you only need to set it if using a different Lemonade server.
 
-**Option 1: Set in .env file (Recommended for local development)**
-
 ```bash
-# Edit .env and set:
-LEMONADE_URL=https://your-server.com/api/v1
+LEMONADE_URL=https://your-server.com/api/v1 docker compose up -d
 ```
-
-**Option 2: Remote Lemonade Server**
-
-```bash
-# Set as environment variable
-LEMONADE_URL=https://your-remote-server.com/api/v1 docker compose up -d
-```
-
-**Option 3: Local Lemonade Server (on host machine)**
-
-If running Lemonade on your host machine:
-
-```bash
-# macOS - add to .env:
-LEMONADE_URL=http://host.docker.internal:5000/api/v1
-
-# Linux - get your Docker gateway IP first:
-docker network inspect bridge | grep Gateway
-# Then add to .env:
-LEMONADE_URL=http://172.17.0.1:5000/api/v1
-```
-
-**For Docker Hub users**: Pass `LEMONADE_URL` as an environment variable when running the container. See [docker-hub.md](docs/docker-hub.md) for details.
-
-**Note**: The interactive `./setup.sh` script can help you configure this automatically for local development.
 
 ### Build Image Locally
 
@@ -565,33 +399,11 @@ See [dev.md](dev.md) for development setup, testing, and version management.
 
 MIT License - see [LICENSE](LICENSE) file
 
-## AI IDE Configuration
-
-### Cursor
-
-This project uses the modern `.cursor/rules/` structure with multiple `.mdc` files:
-
-- **`index.mdc`**: Main project rules (always applied) - project overview, architecture, environment variables
-- **`testing.mdc`**: Auto-applies to test files - pytest guidelines, test commands
-- **`docker.mdc`**: Auto-applies to Docker files - container best practices, image architecture
-- **`python.mdc`**: Auto-applies to Python files - uv usage, dependency management, code style
-
-The `.cursorignore` file excludes unnecessary files from AI analysis (git objects, cache, etc.).
-
-**Note**: The old `.cursorrules` single-file format is deprecated in favor of the modular `.cursor/rules/*.mdc` approach.
-
-### Claude Code
-
-Claude Code is pre-installed in the Docker container. OAuth credentials persist in the Docker volume at `/home/gaia/.claude/`.
-
 ## Related Projects
 
 - [AMD GAIA](https://github.com/amd/gaia) - Main GAIA framework
-- [Claude Code](https://claude.ai/code) - Anthropic's CLI tool
-- [Cursor](https://cursor.sh) - AI-powered code editor
 
 ## Support
 
 - **GAIA Issues**: https://github.com/amd/gaia/issues
 - **Docker Issues**: https://github.com/itomek/gaia-docker/issues
-- **Claude Code Help**: https://claude.ai/help

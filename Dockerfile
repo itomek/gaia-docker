@@ -1,5 +1,5 @@
-# GAIA Development Container
-# Provides isolated Python 3.12 environment with all tools for GAIA development
+# GAIA Linux Container
+# Provides isolated Python 3.12 environment for GAIA
 # GAIA is installed from PyPI at runtime based on version
 
 FROM python:3.12-slim
@@ -52,13 +52,6 @@ RUN useradd -m -s /bin/zsh $USERNAME && \
 RUN mkdir -p /source /host && \
     chown -R $USERNAME:$USERNAME /source /host
 
-# Install git-delta (better git diffs)
-ARG GIT_DELTA_VERSION=0.18.2
-RUN ARCH=$(dpkg --print-architecture) && \
-    wget -q "https://github.com/dandavison/delta/releases/download/${GIT_DELTA_VERSION}/git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
-    dpkg -i "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
-    rm "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb"
-
 # Copy entrypoint script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
@@ -74,9 +67,6 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
 
 # Install uv (fast Python package installer)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Install Claude Code CLI (interactive OAuth login)
-RUN curl -fsSL https://claude.ai/install.sh | bash
 
 # Configure environment
 ENV SHELL=/bin/zsh

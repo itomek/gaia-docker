@@ -4,9 +4,9 @@ Use this as the description when publishing the image to Docker Hub:
 
 ---
 
-# GAIA Docker - Isolated Development Container
+# GAIA Docker - Linux Container
 
-Fully isolated Docker container for [AMD GAIA](https://github.com/amd/gaia) development with all dependencies pre-installed.
+GAIA Linux container for [AMD GAIA](https://github.com/amd/gaia). GAIA is installed from PyPI at startup.
 
 **GAIA Version**: 0.15.1 (matches PyPI `amd-gaia` package)
 
@@ -66,10 +66,10 @@ Once the container is running:
 
 ```bash
 docker exec -it gaia-dev zsh
-cd /source/gaia
 gaia --version
-gaia llm "Hello, world!"
 ```
+
+For the rest of GAIA usage, see https://github.com/AMD/GAIA
 
 ## Versioning
 
@@ -83,7 +83,7 @@ The container installs GAIA from PyPI, so the version matches the `amd-gaia` pac
 
 - ✅ Complete isolation - GAIA installed from PyPI
 - ✅ Fast installation with `uv` package manager
-- ✅ Pre-configured with Claude Code and Cursor support
+- ✅ Linux container for GAIA
 - ✅ Ready to use out of the box
 - ✅ Version-pinned to specific GAIA releases
 

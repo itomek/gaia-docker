@@ -38,7 +38,8 @@ class TestDockerfileBuild:
             text=True
         )
         assert result.returncode == 0
-        assert result.stdout.startswith("v20.")
+        last_line = result.stdout.strip().splitlines()[-1]
+        assert last_line.startswith("v20.")
 
     def test_git_installed(self, project_root):
         """Container must have git."""
@@ -60,15 +61,6 @@ class TestDockerfileBuild:
         assert result.returncode == 0
         assert "zsh" in result.stdout.lower()
 
-    def test_claude_code_installed(self, project_root):
-        """Container must have Claude Code CLI."""
-        result = subprocess.run(
-            ["docker", "run", "--rm", "gaia-dev:test", "claude", "--version"],
-            capture_output=True,
-            text=True
-        )
-        assert result.returncode == 0
-
     def test_uv_installed(self, project_root):
         """Container must have uv (fast Python package installer)."""
         result = subprocess.run(
@@ -86,7 +78,8 @@ class TestDockerfileBuild:
             capture_output=True,
             text=True
         )
-        assert result.stdout.strip() == "gaia"
+        last_line = result.stdout.strip().splitlines()[-1]
+        assert last_line == "gaia"
 
     def test_workspace_directory(self, project_root):
         """Container must have /source directory."""

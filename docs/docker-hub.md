@@ -1,6 +1,6 @@
 # Using GAIA Docker from Docker Hub
 
-This image is published on Docker Hub as `itomek/gaia-dev:<version>`.
+This image is published on Docker Hub as `itomek/gaia-dev:<version>`. This is a Linux container.
 
 **Current GAIA Version**: 0.15.1 (matches PyPI `amd-gaia` package)
 
@@ -67,30 +67,6 @@ docker run -d \
   itomek/gaia-dev:0.15.1
 ```
 
-### Option 2: Local Lemonade Server (on Host)
-
-If you're running Lemonade on your host machine:
-
-**macOS:**
-```bash
-docker run -d \
-  --name gaia-dev \
-  -e LEMONADE_URL=http://host.docker.internal:5000/api/v1 \
-  itomek/gaia-dev:0.15.1
-```
-
-**Linux:**
-```bash
-# First, find your Docker gateway IP
-docker network inspect bridge | grep Gateway
-
-# Then use it (example):
-docker run -d \
-  --name gaia-dev \
-  -e LEMONADE_URL=http://172.17.0.1:5000/api/v1 \
-  itomek/gaia-dev:0.15.1
-```
-
 ## Using Docker Compose
 
 Create a `docker-compose.yml`:
@@ -108,13 +84,8 @@ services:
       - "5000:5000"
       - "8000:8000"
       - "3000:3000"
-    volumes:
-      - gaia-claude-config:/home/gaia/.claude
     tty: true
     stdin_open: true
-
-volumes:
-  gaia-claude-config:
 ```
 
 Then run:
@@ -152,12 +123,9 @@ docker exec -it gaia-dev zsh
 
 # Test GAIA (already installed)
 gaia --version
+```
 
-# Use GAIA LLM (requires LEMONADE_URL)
-gaia llm "Hello, world!"
-
-# Start GAIA chat
-gaia chat
+For the rest of GAIA usage, see https://github.com/AMD/GAIA
 
 ## Troubleshooting
 
