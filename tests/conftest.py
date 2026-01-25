@@ -29,7 +29,6 @@ def gaia_container(project_root):
     """Build and start GAIA container for integration tests."""
     container = (
         DockerContainer(str(project_root))
-        .with_env("LEMONADE_URL", "http://localhost:5000/api/v1")
         .with_env("GAIA_BRANCH", "main")
         .with_env("SKIP_INSTALL", "false")
         .with_command("sleep infinity")

@@ -35,8 +35,6 @@ jobs:
 
       - name: Run integration tests
         if: github.event_name == 'push'
-        env:
-          LEMONADE_URL: http://localhost:5000/api/v1
         run: |
           uv run pytest tests/test_container.py -v --tb=short -m integration
 
