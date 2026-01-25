@@ -15,7 +15,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -64,9 +64,24 @@ jobs:
 
       - name: Update Docker Hub description
         uses: peter-evans/dockerhub-description@v4
+        continue-on-error: true
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ env.IMAGE_NAME }}
           short-description: "GAIA Linux container"
           readme-filepath: ./docs/docker-hub-description.md
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="v${{ steps.version.outputs.version }}"
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "Release $VERSION already exists."
+            exit 0
+          fi
+          gh release create "$VERSION" \
+            --title "$VERSION" \
+            --notes "Docker image published: ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}" \
+            --target "${{ github.sha }}"
