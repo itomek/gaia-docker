@@ -30,7 +30,6 @@ This is a Docker containerization project for AMD GAIA (AI framework) developmen
 
 ## Environment Variables
 Key env vars in docker-compose.yml:
-- No GitHub token needed - GAIA repository is public
 - `GAIA_BRANCH`: Branch to clone (default: main)
 - `SKIP_INSTALL`: Skip pip install on restart (for faster iteration)
 - Ports: LEMONADE_PORT (5000), GAIA_API_PORT (8000), WEB_PORT (3000)
