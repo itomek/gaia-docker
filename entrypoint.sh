@@ -7,52 +7,30 @@ set -e
 echo "=== GAIA Development Container ==="
 
 # Configuration from environment variables
-GAIA_REPO="${GAIA_REPO:-https://github.com/amd/gaia.git}"
-GAIA_BRANCH="${GAIA_BRANCH:-main}"
-GAIA_DIR="/source/gaia"
+GAIA_VERSION="${GAIA_VERSION:-0.15.1}"
 SKIP_INSTALL="${SKIP_INSTALL:-false}"
 
-echo "Repository: $GAIA_REPO"
-echo "Branch: $GAIA_BRANCH"
-echo "Target: $GAIA_DIR"
+echo "GAIA Version: $GAIA_VERSION"
 
-# Configure git credentials if GitHub token provided
-if [ -n "$GITHUB_TOKEN" ]; then
-    echo "Configuring GitHub credentials..."
-    git config --global credential.helper store
-    echo "https://x-access-token:${GITHUB_TOKEN}@github.com" > ~/.git-credentials
-    chmod 600 ~/.git-credentials
-fi
-
-# Clone or update GAIA repository
-if [ ! -d "$GAIA_DIR/.git" ]; then
-    echo "Cloning GAIA from $GAIA_REPO (branch: $GAIA_BRANCH)..."
-    git clone --depth 1 --branch "$GAIA_BRANCH" "$GAIA_REPO" "$GAIA_DIR"
-    echo "Clone completed."
-else
-    echo "GAIA already cloned. Updating..."
-    cd "$GAIA_DIR"
-    git fetch origin "$GAIA_BRANCH" --depth 1
-    git reset --hard "origin/$GAIA_BRANCH"
-    echo "Update completed."
-fi
-
-cd "$GAIA_DIR"
-
-# Install GAIA and dependencies
+# Install GAIA from PyPI with specific version
 if [ "$SKIP_INSTALL" != "true" ]; then
-    echo "Installing GAIA with dependencies (using uv for speed)..."
+    echo "Installing GAIA version $GAIA_VERSION from PyPI (using uv for speed)..."
     echo "(First run: ~2-3 minutes, subsequent runs: ~30 seconds)"
-    uv pip install --system -e ".[dev,mcp,eval,rag]"
+    sudo "$HOME/.local/bin/uv" pip install --system "amd-gaia[dev,mcp,eval,rag]==${GAIA_VERSION}"
     echo "Installation completed."
 else
     echo "Skipping installation (SKIP_INSTALL=true)"
 fi
 
+# Export LEMONADE_URL to environment (defaults to localhost:5000)
+LEMONADE_URL="${LEMONADE_URL:-http://localhost:5000/api/v1}"
+export LEMONADE_URL
+echo "Lemonade server: $LEMONADE_URL"
+
 echo ""
 echo "=== Ready for development ==="
 echo ""
-echo "GAIA location: $GAIA_DIR"
+echo "GAIA version: $GAIA_VERSION"
 echo "Claude Code: Run 'claude' to start (OAuth login on first use)"
 echo "Access: docker exec -it <container> zsh"
 echo ""

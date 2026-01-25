@@ -1,8 +1,12 @@
 # GAIA Development Container
 # Provides isolated Python 3.12 environment with all tools for GAIA development
-# GAIA source code is cloned at runtime, not baked into image
+# GAIA is installed from PyPI at runtime based on version
 
 FROM python:3.12-slim
+
+# GAIA version (set via build arg, defaults to 0.15.1)
+ARG GAIA_VERSION=0.15.1
+ENV GAIA_VERSION="${GAIA_VERSION}"
 
 # Timezone configuration
 ARG TZ=America/Los_Angeles

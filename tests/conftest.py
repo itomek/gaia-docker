@@ -24,21 +24,12 @@ def entrypoint_path(project_root):
     return project_root / "entrypoint.sh"
 
 
-@pytest.fixture(scope="session")
-def github_token():
-    """Get GitHub token from environment."""
-    token = os.getenv("GITHUB_TOKEN")
-    if not token:
-        pytest.skip("GITHUB_TOKEN not set")
-    return token
-
-
 @pytest.fixture(scope="module")
-def gaia_container(project_root, github_token):
+def gaia_container(project_root):
     """Build and start GAIA container for integration tests."""
     container = (
         DockerContainer(str(project_root))
-        .with_env("GITHUB_TOKEN", github_token)
+        .with_env("LEMONADE_URL", "http://localhost:5000/api/v1")
         .with_env("GAIA_BRANCH", "main")
         .with_env("SKIP_INSTALL", "false")
         .with_command("sleep infinity")

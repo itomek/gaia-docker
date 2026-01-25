@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: itomek/gaia-dev:latest
+    image: itomek/gaia-dev:0.15.1
     container_name: ${CONTAINER_NAME:-gaia-dev}
     hostname: gaia-dev
 
@@ -17,18 +17,15 @@ services:
 
     # Environment configuration
     environment:
-      # Required: GitHub token for cloning
-      - GITHUB_TOKEN=${GITHUB_TOKEN:?GITHUB_TOKEN is required}
+      # Lemonade server URL (defaults to localhost:5000)
+      - LEMONADE_URL=${LEMONADE_URL:-http://localhost:5000/api/v1}
 
-      # Optional: GAIA source configuration
+      # GAIA source configuration
       - GAIA_BRANCH=${GAIA_BRANCH:-main}
       - GAIA_REPO=${GAIA_REPO:-https://github.com/amd/gaia.git}
 
       # Optional: Skip pip install (for faster restarts)
       - SKIP_INSTALL=${SKIP_INSTALL:-false}
-
-      # Optional: Remote Lemonade server
-      - LEMONADE_URL=${LEMONADE_URL:-}
 
     # Volume mounts
     volumes:
@@ -36,8 +33,8 @@ services:
       - gaia-claude-config:/home/gaia/.claude
 
       # Optional: Mount host directory for file exchange
-      # Set HOST_DIR environment variable to enable
-      ${HOST_DIR:+- "${HOST_DIR}:/host"}
+      # Uncomment and set HOST_DIR in .env to enable:
+      # - "${HOST_DIR}:/host"
 
     # Keep container running
     tty: true

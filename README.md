@@ -2,23 +2,212 @@
 
 Fully isolated Docker container for [AMD GAIA](https://github.com/amd/gaia) development with Claude Code support.
 
+**Current GAIA Version**: 0.15.1 (matches PyPI `amd-gaia` package)
+
 ## Features
 
-- ✅ **Complete Isolation** - GAIA cloned inside container, not bind-mounted
+- ✅ **Complete Isolation** - GAIA installed from PyPI inside container
+- ✅ **Version Pinned** - Images tagged with GAIA version (currently 0.15.1)
 - ✅ **YOLO Mode Safe** - Destroy and recreate containers freely
 - ✅ **AI IDE Ready** - Configured for Claude Code and Cursor
 - ✅ **Multi-Instance** - Spawn multiple containers from same image
 - ✅ **Zero Security** - Optimized for development speed, not production
 - ✅ **Simple Access** - `docker exec` for instant terminal access
 - ✅ **Fast Installation** - Uses `uv` for 10-100x faster Python package installation
+- ✅ **Docker Hub Ready** - Published as `itomek/gaia-dev:<version>` for easy deployment
 
 ## Quick Start
 
 ### Prerequisites
 
-- Docker and Docker Compose installed
-- GitHub personal access token (for cloning GAIA)
-- (Optional) Claude Code or Cursor for AI-assisted development
+- Docker installed
+- (Optional) Lemonade server URL (defaults to `http://localhost:5000/api/v1`)
+
+### 1. Pull the Image
+
+**Current version (GAIA 0.15.1):**
+```bash
+docker pull itomek/gaia-dev:0.15.1
+```
+
+**Other available versions:**
+```bash
+docker pull itomek/gaia-dev:0.15.2  # When available
+```
+
+**Note**: We only publish specific version tags (no `latest` tag). Images are tagged with the GAIA version they contain. The container installs GAIA from PyPI (`amd-gaia` package), so the version matches the PyPI package version.
+
+### 2. Run the Container
+
+**Option A: Using Default Settings**
+
+The container works out of the box with default settings (LEMONADE_URL defaults to `http://localhost:5000/api/v1`):
+
+```bash
+docker run -d \
+  --name gaia-dev \
+  -p 5000:5000 \
+  -p 8000:8000 \
+  -p 3000:3000 \
+  itomek/gaia-dev:0.15.1
+```
+
+**Option B: With Custom Lemonade URL**
+
+If you need to use a different Lemonade server, set the `LEMONADE_URL` environment variable using the `-e` flag:
+
+```bash
+docker run -d \
+  --name gaia-dev \
+  -e LEMONADE_URL=https://your-lemonade-server.com/api/v1 \
+  -p 5000:5000 \
+  -p 8000:8000 \
+  -p 3000:3000 \
+  itomek/gaia-dev:0.15.1
+```
+
+**Note**: You can set any environment variable using the `-e` flag. See the [Environment Variables](#environment-variables) section below for all available options.
+
+**Option C: Using Docker Compose**
+
+Create a `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  gaia-dev:
+    image: itomek/gaia-dev:0.15.1
+    container_name: gaia-dev
+    environment:
+      - LEMONADE_URL=http://localhost:5000/api/v1  # Optional, this is the default
+    ports:
+      - "5000:5000"
+      - "8000:8000"
+      - "3000:3000"
+    volumes:
+      - gaia-claude-config:/home/gaia/.claude
+    tty: true
+    stdin_open: true
+
+volumes:
+  gaia-claude-config:
+```
+
+Then run:
+
+```bash
+docker compose up -d
+```
+
+### 3. Connect to Container
+
+```bash
+docker exec -it gaia-dev zsh
+```
+
+### 4. Start Using GAIA
+
+```bash
+# Test GAIA (already installed from PyPI)
+gaia --version
+
+# Use GAIA LLM (requires Lemonade server)
+gaia llm "Hello, world!"
+
+# Start GAIA chat
+gaia chat
+```
+
+## Environment Variables
+
+You can configure the container using environment variables. Set them using the `-e` flag with `docker run` or in your `docker-compose.yml`.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LEMONADE_URL` | `http://localhost:5000/api/v1` | Lemonade server URL for GAIA LLM features. Set this if your Lemonade server is running on a different host or port. |
+| `GAIA_VERSION` | `0.15.1` | GAIA version to install from PyPI. Usually matches the image tag, but can be overridden. |
+| `SKIP_INSTALL` | `false` | Skip package installation on startup (faster restarts). |
+
+### Setting Environment Variables
+
+**With docker run:**
+```bash
+docker run -d \
+  --name gaia-dev \
+  -e LEMONADE_URL=https://your-server.com/api/v1 \
+  -p 5000:5000 \
+  -p 8000:8000 \
+  -p 3000:3000 \
+  itomek/gaia-dev:0.15.1
+```
+
+**With docker-compose.yml:**
+```yaml
+services:
+  gaia-dev:
+    image: itomek/gaia-dev:0.15.1
+    environment:
+      - LEMONADE_URL=https://your-server.com/api/v1
+    ports:
+      - "5000:5000"
+      - "8000:8000"
+      - "3000:3000"
+```
+
+**Using .env file with docker-compose:**
+```bash
+# Create .env file
+echo "LEMONADE_URL=https://your-server.com/api/v1" > .env
+
+# docker-compose automatically reads .env
+docker compose up -d
+```
+
+### Lemonade URL Examples
+
+- **Default (Lemonade in container)**: `http://localhost:5000/api/v1`
+- **Remote server**: `https://your-remote-server.com/api/v1`
+- **Local server on host (macOS)**: `http://host.docker.internal:5000/api/v1`
+- **Local server on host (Linux)**: `http://172.17.0.1:5000/api/v1`
+
+## Versioning
+
+This Docker image is versioned to match the GAIA version from PyPI:
+
+- **Current version**: 0.15.1 (matches PyPI `amd-gaia==0.15.1`)
+- **Image tags**: `itomek/gaia-dev:0.15.1` (current version), `itomek/gaia-dev:0.15.2` (future versions when available)
+
+**Note**: We only publish specific version tags (no `latest` tag). Each version is explicitly tagged.
+
+### Pulling Specific Versions
+
+```bash
+# Current version
+docker pull itomek/gaia-dev:0.15.1
+
+# Future versions (when available)
+docker pull itomek/gaia-dev:0.15.2
+```
+
+The container installs GAIA from PyPI, so the version in the container matches the image tag. You can override the version using the `GAIA_VERSION` environment variable.
+
+## Using in Your Dockerfile
+
+You can use this image as a base in your own Dockerfile. See [docs/dockerfile-usage.md](docs/dockerfile-usage.md) for detailed examples.
+
+**Quick example:**
+```dockerfile
+FROM itomek/gaia-dev:0.15.1
+
+# Add your customizations
+ENV LEMONADE_URL=https://your-server.com/api/v1
+RUN your-custom-commands
+```
+
+## Building from Source
+
+If you want to build the image yourself or modify it:
 
 ### 1. Clone This Repository
 
@@ -27,25 +216,15 @@ git clone https://github.com/itomek/gaia-docker.git
 cd gaia-docker
 ```
 
-### 2. Set GitHub Token
+### 2. Build the Image
 
 ```bash
-export GITHUB_TOKEN=ghp_your_token_here
+docker build -t itomek/gaia-dev:0.15.1 .
 ```
 
-### 3. Start Container
+### 3. Run the Container
 
-```bash
-docker compose up -d
-```
-
-First startup takes ~2-3 minutes (downloads image, clones GAIA, installs dependencies with uv).
-
-### 4. Connect to Container
-
-```bash
-docker exec -it gaia-dev zsh
-```
+Follow the same instructions as above, but use your locally built image.
 
 ### 5. Using AI IDEs (Optional)
 
@@ -127,9 +306,14 @@ ls /host
 
 ## Environment Variables
 
+Environment variables can be set in three ways (in order of precedence):
+1. **`.env` file** (recommended) - Project-specific, gitignored, see `.env.example`
+2. **OS environment variables** - `export VAR=value`
+3. **Inline** - `VAR=value docker compose up`
+
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `GITHUB_TOKEN` | **Yes** | - | GitHub PAT for cloning GAIA |
+| `LEMONADE_URL` | No | `http://localhost:5000/api/v1` | Lemonade server URL |
 | `GAIA_BRANCH` | No | `main` | Branch to clone |
 | `GAIA_REPO` | No | `https://github.com/amd/gaia.git` | Repository URL |
 | `CONTAINER_NAME` | No | `gaia-dev` | Container name |
@@ -138,14 +322,13 @@ ls /host
 | `WEB_PORT` | No | `3000` | Web app port |
 | `HOST_DIR` | No | - | Host directory to mount at `/host` |
 | `SKIP_INSTALL` | No | `false` | Skip `pip install` on startup |
-| `LEMONADE_URL` | No | - | Remote Lemonade server URL |
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Docker Hub                               │
-│                  itomek/gaia-dev:latest                     │
+│                  itomek/gaia-dev:0.15.1                     │
 │      (Python 3.12 + Node.js + tools + Claude Code)          │
 │      Configured for: Claude Code, Cursor                     │
 └─────────────────────────────────────────────────────────────┘
@@ -165,7 +348,7 @@ ls /host
 ┌─────────────────────────────────────────────────────────────┐
 │                   Development                                │
 │  - Claude Code with OAuth credentials                       │
-│  - Git with GITHUB_TOKEN                                    │
+│  - Git (public repos, no token needed)                      │
 │  - Full GAIA environment                                    │
 │  - YOLO mode safe (container is disposable)                 │
 └─────────────────────────────────────────────────────────────┘
@@ -227,7 +410,7 @@ docker compose down
 ### Update GAIA Source
 
 ```bash
-# Restart container to pull latest
+# Restart container
 docker compose restart
 
 # Or manually inside container
@@ -282,8 +465,8 @@ This makes the YOLO workflow practical for daily use.
 # Check logs
 docker compose logs
 
-# Check if GITHUB_TOKEN is set
-echo $GITHUB_TOKEN
+# Check container logs
+docker compose logs
 ```
 
 ### Claude Code Not Working
@@ -315,16 +498,41 @@ LEMONADE_PORT=5001 GAIA_API_PORT=8001 docker compose up -d
 
 ## Advanced Usage
 
-### Connect to Remote Lemonade Server
+### Configure Lemonade Server (Optional)
+
+**LEMONADE_URL defaults to `http://localhost:5000/api/v1`** - you only need to set it if using a different Lemonade server.
+
+**Option 1: Set in .env file (Recommended for local development)**
 
 ```bash
-# Set Lemonade URL
-LEMONADE_URL=http://your-server:5000 docker compose up -d
-
-# Inside container
-export LEMONADE_URL=http://your-server:5000
-gaia llm "Hello"
+# Edit .env and set:
+LEMONADE_URL=https://your-server.com/api/v1
 ```
+
+**Option 2: Remote Lemonade Server**
+
+```bash
+# Set as environment variable
+LEMONADE_URL=https://your-remote-server.com/api/v1 docker compose up -d
+```
+
+**Option 3: Local Lemonade Server (on host machine)**
+
+If running Lemonade on your host machine:
+
+```bash
+# macOS - add to .env:
+LEMONADE_URL=http://host.docker.internal:5000/api/v1
+
+# Linux - get your Docker gateway IP first:
+docker network inspect bridge | grep Gateway
+# Then add to .env:
+LEMONADE_URL=http://172.17.0.1:5000/api/v1
+```
+
+**For Docker Hub users**: Pass `LEMONADE_URL` as an environment variable when running the container. See [docker-hub.md](docs/docker-hub.md) for details.
+
+**Note**: The interactive `./setup.sh` script can help you configure this automatically for local development.
 
 ### Build Image Locally
 
@@ -343,20 +551,15 @@ docker build -t gaia-dev:local .
 docker login
 
 # Build and tag
-docker build -t yourusername/gaia-dev:latest .
+docker build -t yourusername/gaia-dev:0.15.1 .
 
 # Push
-docker push yourusername/gaia-dev:latest
+docker push yourusername/gaia-dev:0.15.1
 ```
 
-## Contributing
+## Development
 
-Contributions welcome! Please:
-
-1. Fork this repository
-2. Create a feature branch
-3. Run tests: `pytest tests/ -v`
-4. Submit a pull request
+See [dev.md](dev.md) for development setup, testing, and version management.
 
 ## License
 

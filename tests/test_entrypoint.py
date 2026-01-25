@@ -94,21 +94,11 @@ class TestEnvironmentConfiguration:
 class TestGitHubTokenHandling:
     """Test GitHub token configuration."""
 
-    def test_configures_git_credentials(self, entrypoint_path):
-        """Should configure git credentials if token provided."""
+    def test_no_github_token_needed(self, entrypoint_path):
+        """Should not require GitHub token for public repos."""
         content = entrypoint_path.read_text()
-        assert "GITHUB_TOKEN" in content
-        assert "git config" in content
-
-    @pytest.mark.integration
-    def test_token_not_exposed_in_env(self, container_exec):
-        """GitHub token should not be exposed in environment."""
-        result = container_exec("env")
-        # Token should be used but not stored in env after setup
-        output = result.output.decode()
-        # Allow it to be in env initially, but check it's not logged
-        # This test might need adjustment based on actual implementation
-        pass
+        # Entrypoint should work without GitHub token
+        assert "No GitHub token needed" in content or "public" in content.lower()
 
 
 class TestHostDirectoryMount:
