@@ -124,13 +124,15 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           VERSION="v${{ needs.build-and-push.outputs.version }}"
-          if gh release view "$VERSION" >/dev/null 2>&1; then
+          if gh release view "$VERSION" --repo "$GH_REPO" >/dev/null 2>&1; then
             echo "Release $VERSION exists, deleting to overwrite."
-            gh release delete "$VERSION" --yes
+            gh release delete "$VERSION" --yes --repo "$GH_REPO"
           fi
           gh release create "$VERSION" \
             --title "$VERSION" \
             --notes "Docker image published: ${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.version }}" \
-            --target "${{ github.sha }}"
+            --target "${{ github.sha }}" \
+            --repo "$GH_REPO"
