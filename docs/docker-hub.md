@@ -92,8 +92,6 @@ docker compose up -d
 | `GAIA_VERSION` | No | `0.15.1` | GAIA version to install from PyPI (matches image tag) |
 | `SKIP_INSTALL` | No | `false` | Skip package installation on startup |
 
-**Note**: `LEMONADE_URL` is accepted as a legacy alias and mapped to `LEMONADE_BASE_URL`.
-
 ## First Run
 
 On first run, the container will:
@@ -132,7 +130,7 @@ The container should start successfully with default settings. If it exits, chec
 
 ### GAIA says "Lemonade server is not running"
 
-Verify `LEMONADE_BASE_URL` is set correctly (or `LEMONADE_URL` as a legacy alias):
+Verify `LEMONADE_BASE_URL` is set correctly:
 ```bash
 docker exec gaia-dev env | grep LEMONADE_BASE_URL
 ```

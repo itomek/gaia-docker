@@ -23,16 +23,8 @@ else
 fi
 
 # Export Lemonade base URL to environment (defaults to localhost:5000)
-# Backward compatibility: map LEMONADE_URL to LEMONADE_BASE_URL if set
-if [ -z "${LEMONADE_BASE_URL:-}" ] && [ -n "${LEMONADE_URL:-}" ]; then
-    LEMONADE_BASE_URL="$LEMONADE_URL"
-fi
 LEMONADE_BASE_URL="${LEMONADE_BASE_URL:-http://localhost:5000/api/v1}"
 export LEMONADE_BASE_URL
-if [ -z "${LEMONADE_URL:-}" ]; then
-    LEMONADE_URL="$LEMONADE_BASE_URL"
-fi
-export LEMONADE_URL
 echo "Lemonade base URL: $LEMONADE_BASE_URL"
 
 echo ""

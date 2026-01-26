@@ -106,8 +106,6 @@ You can configure the container using environment variables. Set them using the 
 | `GAIA_VERSION` | `0.15.1` | GAIA version to install from PyPI. Usually matches the image tag, but can be overridden. |
 | `SKIP_INSTALL` | `false` | Skip package installation on startup (faster restarts). |
 
-**Note**: `LEMONADE_URL` is accepted as a legacy alias and mapped to `LEMONADE_BASE_URL`.
-
 ### Setting Environment Variables
 
 **With docker run:**
