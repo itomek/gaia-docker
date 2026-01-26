@@ -72,8 +72,5 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV SHELL=/bin/zsh
 ENV PATH="/home/gaia/.cargo/bin:/home/gaia/.local/bin:$PATH"
 
-# Expose common ports
-EXPOSE 5000 8000 3000
-
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["zsh"]

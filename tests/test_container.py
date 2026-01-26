@@ -60,23 +60,3 @@ class TestDockerExecAccess:
         assert result.output.decode().strip() == "root"
 
 
-class TestPortExposure:
-    """Test that expected ports are exposed."""
-
-    @pytest.mark.integration
-    def test_port_5000_exposed(self, gaia_container):
-        """Port 5000 should be exposed for Lemonade."""
-        container = gaia_container.get_wrapped_container()
-        container.reload()
-        ports = container.attrs.get("Config", {}).get("ExposedPorts", {})
-        assert "5000/tcp" in ports
-
-    @pytest.mark.integration
-    def test_port_8000_exposed(self, gaia_container):
-        """Port 8000 should be exposed for GAIA API."""
-        container = gaia_container.get_wrapped_container()
-        container.reload()
-        ports = container.attrs.get("Config", {}).get("ExposedPorts", {})
-        assert "8000/tcp" in ports
-
-

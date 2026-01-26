@@ -27,24 +27,18 @@ docker pull itomek/gaia-dev:0.15.2  # When available
 
 ### 2. Run the Container
 
-**LEMONADE_URL is optional** - defaults to `http://localhost:5000/api/v1` if not provided.
+**LEMONADE_BASE_URL is optional** - defaults to `http://localhost:5000/api/v1` if not provided.
 
 ```bash
 # With default Lemonade URL (localhost:5000)
-docker run -d \
+docker run -dit \
   --name gaia-dev \
-  -p 5000:5000 \
-  -p 8000:8000 \
-  -p 3000:3000 \
   itomek/gaia-dev:0.15.1
 
 # Or with custom Lemonade URL
-docker run -d \
+docker run -dit \
   --name gaia-dev \
-  -e LEMONADE_URL=https://your-lemonade-server.com/api/v1 \
-  -p 5000:5000 \
-  -p 8000:8000 \
-  -p 3000:3000 \
+  -e LEMONADE_BASE_URL=https://your-lemonade-server.com/api/v1 \
   itomek/gaia-dev:0.15.1
 ```
 
@@ -61,9 +55,9 @@ docker exec -it gaia-dev zsh
 If you have a remote Lemonade server:
 
 ```bash
-docker run -d \
+docker run -dit \
   --name gaia-dev \
-  -e LEMONADE_URL=https://your-remote-server.com/api/v1 \
+  -e LEMONADE_BASE_URL=https://your-remote-server.com/api/v1 \
   itomek/gaia-dev:0.15.1
 ```
 
@@ -79,11 +73,7 @@ services:
     image: itomek/gaia-dev:0.15.1
     container_name: gaia-dev
     environment:
-      - LEMONADE_URL=https://your-lemonade-server.com/api/v1
-    ports:
-      - "5000:5000"
-      - "8000:8000"
-      - "3000:3000"
+      - LEMONADE_BASE_URL=https://your-lemonade-server.com/api/v1
     tty: true
     stdin_open: true
 ```
@@ -98,9 +88,11 @@ docker compose up -d
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `LEMONADE_URL` | No | `http://localhost:5000/api/v1` | Lemonade server URL |
+| `LEMONADE_BASE_URL` | No | `http://localhost:5000/api/v1` | Lemonade server base URL |
 | `GAIA_VERSION` | No | `0.15.1` | GAIA version to install from PyPI (matches image tag) |
 | `SKIP_INSTALL` | No | `false` | Skip package installation on startup |
+
+**Note**: `LEMONADE_URL` is accepted as a legacy alias and mapped to `LEMONADE_BASE_URL`.
 
 ## First Run
 
@@ -140,22 +132,10 @@ The container should start successfully with default settings. If it exits, chec
 
 ### GAIA says "Lemonade server is not running"
 
-Verify `LEMONADE_URL` is set correctly:
+Verify `LEMONADE_BASE_URL` is set correctly (or `LEMONADE_URL` as a legacy alias):
 ```bash
-docker exec gaia-dev env | grep LEMONADE_URL
+docker exec gaia-dev env | grep LEMONADE_BASE_URL
 ```
 
 Make sure the URL is accessible from inside the container.
 
-### Port conflicts
-
-Use different ports:
-```bash
-docker run -d \
-  --name gaia-dev \
-  -e LEMONADE_URL=https://your-server.com/api/v1 \
-  -p 5001:5000 \
-  -p 8001:8000 \
-  -p 3001:3000 \
-  itomek/gaia-dev:0.15.1
-```

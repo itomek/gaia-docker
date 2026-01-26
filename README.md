@@ -18,7 +18,7 @@ GAIA Linux container for [AMD GAIA](https://github.com/amd/gaia). GAIA is instal
 ### Prerequisites
 
 - Docker installed
-- (Optional) Lemonade server URL (defaults to `http://localhost:5000/api/v1`)
+- (Optional) Lemonade base URL (defaults to `http://localhost:5000/api/v1`)
 
 ### 1. Pull the Image
 
@@ -38,28 +38,22 @@ docker pull itomek/gaia-dev:0.15.2  # When available
 
 **Option A: Using Default Settings**
 
-The container works out of the box with default settings (LEMONADE_URL defaults to `http://localhost:5000/api/v1`):
+The container works out of the box with default settings (LEMONADE_BASE_URL defaults to `http://localhost:5000/api/v1`):
 
 ```bash
-docker run -d \
+docker run -dit \
   --name gaia-dev \
-  -p 5000:5000 \
-  -p 8000:8000 \
-  -p 3000:3000 \
   itomek/gaia-dev:0.15.1
 ```
 
 **Option B: With Custom Lemonade URL**
 
-If you need to use a different Lemonade server, set the `LEMONADE_URL` environment variable using the `-e` flag:
+If you need to use a different Lemonade server, set the `LEMONADE_BASE_URL` environment variable using the `-e` flag:
 
 ```bash
-docker run -d \
+docker run -dit \
   --name gaia-dev \
-  -e LEMONADE_URL=https://your-lemonade-server.com/api/v1 \
-  -p 5000:5000 \
-  -p 8000:8000 \
-  -p 3000:3000 \
+  -e LEMONADE_BASE_URL=https://your-lemonade-server.com/api/v1 \
   itomek/gaia-dev:0.15.1
 ```
 
@@ -77,11 +71,7 @@ services:
     image: itomek/gaia-dev:0.15.1
     container_name: gaia-dev
     environment:
-      - LEMONADE_URL=http://localhost:5000/api/v1  # Optional, this is the default
-    ports:
-      - "5000:5000"
-      - "8000:8000"
-      - "3000:3000"
+      - LEMONADE_BASE_URL=http://localhost:5000/api/v1  # Optional, this is the default
     tty: true
     stdin_open: true
 ```
@@ -112,31 +102,30 @@ You can configure the container using environment variables. Set them using the 
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LEMONADE_URL` | `http://localhost:5000/api/v1` | Lemonade server URL for GAIA LLM features. Set this if your Lemonade server is running on a different host or port. |
+| `LEMONADE_BASE_URL` | `http://localhost:5000/api/v1` | Lemonade server base URL for GAIA LLM features. |
 | `GAIA_VERSION` | `0.15.1` | GAIA version to install from PyPI. Usually matches the image tag, but can be overridden. |
 | `SKIP_INSTALL` | `false` | Skip package installation on startup (faster restarts). |
+
+**Note**: `LEMONADE_URL` is accepted as a legacy alias and mapped to `LEMONADE_BASE_URL`.
 
 ### Setting Environment Variables
 
 **With docker run:**
 ```bash
-docker run -d \
+docker run -dit \
   --name gaia-dev \
-  -e LEMONADE_URL=https://your-server.com/api/v1 \
-  -p 5000:5000 \
-  -p 8000:8000 \
-  -p 3000:3000 \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   itomek/gaia-dev:0.15.1
 ```
 
 **With docker compose:**
 ```bash
-LEMONADE_URL=https://your-server.com/api/v1 docker compose up -d
+LEMONADE_BASE_URL=https://your-server.com/api/v1 docker compose up -d
 ```
 
 ### Lemonade URL Examples
 
-Start your Lemonade server separately, then set `LEMONADE_URL` to its API endpoint.
+Start your Lemonade server separately, then set `LEMONADE_BASE_URL` to its API endpoint.
 
 - **Default (Lemonade in container)**: `http://localhost:5000/api/v1`
 - **Remote server**: `https://your-remote-server.com/api/v1`
@@ -146,7 +135,7 @@ Start your Lemonade server separately, then set `LEMONADE_URL` to its API endpoi
 If you want to use an external Lemonade, add this environment variable.
 
 ```bash
-export LEMONADE_URL="https://your-server.com/api/v1"
+export LEMONADE_BASE_URL="https://your-server.com/api/v1"
 source .cshrc
 ```
 
@@ -180,7 +169,7 @@ You can use this image as a base in your own Dockerfile. See [docs/dockerfile-us
 FROM itomek/gaia-dev:0.15.1
 
 # Add your customizations
-ENV LEMONADE_URL=https://your-server.com/api/v1
+ENV LEMONADE_BASE_URL=https://your-server.com/api/v1
 RUN your-custom-commands
 ```
 
@@ -213,16 +202,12 @@ Follow the same instructions as above, but use your locally built image.
 # Default container
 docker compose up -d
 
-# Second container (different name/ports)
+# Second container (different name)
 CONTAINER_NAME=gaia-feature \
-LEMONADE_PORT=5001 \
-GAIA_API_PORT=8001 \
   docker compose up -d
 
-# Third container (different ports)
+# Third container (different name)
 CONTAINER_NAME=gaia-myfork \
-LEMONADE_PORT=5002 \
-GAIA_API_PORT=8002 \
   docker compose up -d
 ```
 
@@ -351,21 +336,14 @@ docker exec -it gaia-dev python --version  # Should be 3.12
 docker exec -it gaia-dev bash -c "uv pip install --system 'amd-gaia[dev,mcp,eval,rag]==${GAIA_VERSION}'"
 ```
 
-### Port Conflicts
-
-```bash
-# Use different ports
-LEMONADE_PORT=5001 GAIA_API_PORT=8001 docker compose up -d
-```
-
 ## Advanced Usage
 
 ### Configure Lemonade Server (Optional)
 
-**LEMONADE_URL defaults to `http://localhost:5000/api/v1`** - you only need to set it if using a different Lemonade server.
+**LEMONADE_BASE_URL defaults to `http://localhost:5000/api/v1`** - you only need to set it if using a different Lemonade server.
 
 ```bash
-LEMONADE_URL=https://your-server.com/api/v1 docker compose up -d
+LEMONADE_BASE_URL=https://your-server.com/api/v1 docker compose up -d
 ```
 
 ### Build Image Locally

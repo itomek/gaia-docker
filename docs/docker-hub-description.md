@@ -26,14 +26,13 @@ docker pull itomek/gaia-dev:0.15.2  # When available
 
 ### 2. Run the Container
 ```bash
-docker run -d --name gaia-dev -p 5000:5000 -p 8000:8000 -p 3000:3000 itomek/gaia-dev:0.15.1
+docker run -dit --name gaia-dev itomek/gaia-dev:0.15.1
 ```
 
-**Optional:** Set `LEMONADE_URL` environment variable if using a custom Lemonade server:
+**Optional:** Set `LEMONADE_BASE_URL` environment variable if using a custom Lemonade server:
 ```bash
-docker run -d --name gaia-dev \
-  -e LEMONADE_URL=https://your-server.com/api/v1 \
-  -p 5000:5000 -p 8000:8000 -p 3000:3000 \
+docker run -dit --name gaia-dev \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   itomek/gaia-dev:0.15.1
 ```
 
@@ -46,17 +45,14 @@ docker exec -it gaia-dev zsh
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LEMONADE_URL` | `http://localhost:5000/api/v1` | Lemonade server URL for GAIA LLM features |
+| `LEMONADE_BASE_URL` | `http://localhost:5000/api/v1` | Lemonade server base URL for GAIA LLM features |
 
 ### Example: Custom Lemonade URL
 
 ```bash
-docker run -d \
+docker run -dit \
   --name gaia-dev \
-  -e LEMONADE_URL=https://your-server.com/api/v1 \
-  -p 5000:5000 \
-  -p 8000:8000 \
-  -p 3000:3000 \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   itomek/gaia-dev:0.15.1
 ```
 

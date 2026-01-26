@@ -29,10 +29,9 @@ This is a Linux Docker container for AMD GAIA (AI framework). GAIA is installed 
 
 ## Environment Variables
 Key env vars in docker-compose.yml:
-- `LEMONADE_URL`: Lemonade server URL (default: http://localhost:5000/api/v1)
+- `LEMONADE_BASE_URL`: Lemonade server base URL (default: http://localhost:5000/api/v1)
 - `GAIA_VERSION`: GAIA version to install from PyPI
 - `SKIP_INSTALL`: Skip pip install on restart (faster startup)
-- Ports: LEMONADE_PORT (5000), GAIA_API_PORT (8000), WEB_PORT (3000)
 
 ## Important Notes
 - This is a Linux container for GAIA

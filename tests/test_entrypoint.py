@@ -55,10 +55,10 @@ class TestEnvironmentConfiguration:
         content = entrypoint_path.read_text()
         assert 'GAIA_VERSION="${GAIA_VERSION:-0.15.1}"' in content
 
-    def test_respects_lemonade_url_env(self, entrypoint_path):
-        """Should respect LEMONADE_URL environment variable."""
+    def test_respects_lemonade_base_url_env(self, entrypoint_path):
+        """Should respect LEMONADE_BASE_URL environment variable."""
         content = entrypoint_path.read_text()
-        assert 'LEMONADE_URL="${LEMONADE_URL:-http://localhost:5000/api/v1}"' in content
+        assert 'LEMONADE_BASE_URL="${LEMONADE_BASE_URL:-http://localhost:5000/api/v1}"' in content
 
     def test_respects_skip_install_env(self, entrypoint_path):
         """Should respect SKIP_INSTALL environment variable."""

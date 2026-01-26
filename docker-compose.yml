@@ -9,16 +9,10 @@ services:
     container_name: ${CONTAINER_NAME:-gaia-dev}
     hostname: gaia-dev
 
-    # Port mappings for GAIA services
-    ports:
-      - "${LEMONADE_PORT:-5000}:5000"  # Lemonade LLM server
-      - "${GAIA_API_PORT:-8000}:8000"  # GAIA API server
-      - "${WEB_PORT:-3000}:3000"       # Web applications
-
     # Environment configuration
     environment:
-      # Lemonade server URL (defaults to localhost:5000)
-      - LEMONADE_URL=${LEMONADE_URL:-http://localhost:5000/api/v1}
+      # Lemonade server base URL (defaults to localhost:5000)
+      - LEMONADE_BASE_URL=${LEMONADE_BASE_URL:-http://localhost:5000/api/v1}
 
       # Optional: Skip pip install (for faster restarts)
       - SKIP_INSTALL=${SKIP_INSTALL:-false}

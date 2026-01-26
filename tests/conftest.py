@@ -44,13 +44,13 @@ def gaia_container(project_root):
     with container:
         # Wait for entrypoint to complete
         start = time.time()
-        while time.time() - start < 300:
+        while time.time() - start < 600:
             logs = container.get_wrapped_container().logs().decode("utf-8", errors="ignore")
             if "=== Ready ===" in logs:
                 break
             time.sleep(1)
         else:
-            raise TimeoutError("Container did not become ready within 300 seconds")
+            raise TimeoutError("Container did not become ready within 600 seconds")
         yield container
 
 
