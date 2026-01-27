@@ -11,7 +11,7 @@ GAIA Linux container for [AMD GAIA](https://github.com/amd/gaia). GAIA is instal
 - ✅ **Multi-Instance** - Spawn multiple containers from same image
 - ✅ **Simple Access** - `docker exec` for instant terminal access
 - ✅ **Fast Installation** - Uses `uv` for 10-100x faster Python package installation
-- ✅ **Docker Hub Ready** - Published as `itomek/gaia-dev:<version>` for easy deployment
+- ✅ **Docker Hub Ready** - Published as `itomek/gaia-linux:<version>` for easy deployment
 
 ## Quick Start
 
@@ -24,12 +24,12 @@ GAIA Linux container for [AMD GAIA](https://github.com/amd/gaia). GAIA is instal
 
 **Current version (GAIA 0.15.1):**
 ```bash
-docker pull itomek/gaia-dev:0.15.1
+docker pull itomek/gaia-linux:0.15.1
 ```
 
 **Other available versions:**
 ```bash
-docker pull itomek/gaia-dev:0.15.2  # When available
+docker pull itomek/gaia-linux:0.15.2  # When available
 ```
 
 **Note**: We only publish specific version tags (no `latest` tag). Images are tagged with the GAIA version they contain. The container installs GAIA from PyPI (`amd-gaia` package), so the version matches the PyPI package version.
@@ -40,9 +40,9 @@ Set the `LEMONADE_BASE_URL` environment variable to your Lemonade server:
 
 ```bash
 docker run -dit \
-  --name gaia-dev \
+  --name gaia-linux \
   -e LEMONADE_BASE_URL=https://your-lemonade-server.com/api/v1 \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-linux:0.15.1
 ```
 
 You can set any environment variable using the `-e` flag. See the [Environment Variables](#environment-variables) section below for all available options.
@@ -50,7 +50,7 @@ You can set any environment variable using the `-e` flag. See the [Environment V
 ### 3. Connect to Container
 
 ```bash
-docker exec -it gaia-dev zsh
+docker exec -it gaia-linux zsh
 ```
 
 ### 4. Start Using GAIA
@@ -67,7 +67,7 @@ You can configure the container using environment variables. Set them using the 
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LEMONADE_BASE_URL` | *Required* | Lemonade server base URL for GAIA LLM features. |
+| `LEMONADE_BASE_URL` | **(required)** | Lemonade server base URL for GAIA LLM features. |
 | `GAIA_VERSION` | `0.15.1` | GAIA version to install from PyPI. Usually matches the image tag, but can be overridden. |
 | `SKIP_INSTALL` | `false` | Skip package installation on startup (faster restarts). |
 
@@ -76,9 +76,9 @@ You can configure the container using environment variables. Set them using the 
 Use the `-e` flag with `docker run`:
 ```bash
 docker run -dit \
-  --name gaia-dev \
+  --name gaia-linux \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-linux:0.15.1
 ```
 
 ### Lemonade URL Examples
@@ -102,7 +102,7 @@ source .cshrc
 This Docker image is versioned to match the GAIA version from PyPI:
 
 - **Current version**: 0.15.1 (matches PyPI `amd-gaia==0.15.1`)
-- **Image tags**: `itomek/gaia-dev:0.15.1` (current version), `itomek/gaia-dev:0.15.2` (future versions when available)
+- **Image tags**: `itomek/gaia-linux:0.15.1` (current version), `itomek/gaia-linux:0.15.2` (future versions when available)
 
 **Note**: We only publish specific version tags (no `latest` tag). Each version is explicitly tagged.
 
@@ -110,10 +110,10 @@ This Docker image is versioned to match the GAIA version from PyPI:
 
 ```bash
 # Current version
-docker pull itomek/gaia-dev:0.15.1
+docker pull itomek/gaia-linux:0.15.1
 
 # Future versions (when available)
-docker pull itomek/gaia-dev:0.15.2
+docker pull itomek/gaia-linux:0.15.2
 ```
 
 The container installs GAIA from PyPI, so the version in the container matches the image tag. You can override the version using the `GAIA_VERSION` environment variable.
@@ -124,7 +124,7 @@ You can use this image as a base in your own Dockerfile. See [docs/dockerfile-us
 
 **Quick example:**
 ```dockerfile
-FROM itomek/gaia-dev:0.15.1
+FROM itomek/gaia-linux:0.15.1
 
 # Add your customizations
 ENV LEMONADE_BASE_URL=https://your-server.com/api/v1
@@ -145,7 +145,7 @@ cd gaia-docker
 ### 2. Build the Image
 
 ```bash
-docker build -t itomek/gaia-dev:0.15.1 .
+docker build -t itomek/gaia-linux:0.15.1 .
 ```
 
 ### 3. Run the Container
@@ -159,34 +159,34 @@ Follow the same instructions as above, but use your locally built image.
 ```bash
 # First container
 docker run -dit \
-  --name gaia-dev-main \
+  --name gaia-linux-main \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-linux:0.15.1
 
 # Second container
 docker run -dit \
-  --name gaia-dev-feature \
+  --name gaia-linux-feature \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-linux:0.15.1
 ```
 
 ### Connect to Specific Container
 
 ```bash
-docker exec -it gaia-dev-feature zsh
+docker exec -it gaia-linux-feature zsh
 ```
 
 ### Destroy and Recreate
 
 ```bash
 # Stop and remove
-docker stop gaia-dev-main && docker rm gaia-dev-main
+docker stop gaia-linux-main && docker rm gaia-linux-main
 
 # Recreate fresh
 docker run -dit \
-  --name gaia-dev-main \
+  --name gaia-linux-main \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-linux:0.15.1
 ```
 
 ### Mount Host Directory for File Exchange
@@ -194,10 +194,10 @@ docker run -dit \
 ```bash
 # Mount ~/Public to /host in container
 docker run -dit \
-  --name gaia-dev \
+  --name gaia-linux \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   -v /Users/yourname/Public:/host \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-linux:0.15.1
 
 # Inside container
 ls /host
@@ -208,7 +208,7 @@ ls /host
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Docker Hub                               │
-│                  itomek/gaia-dev:0.15.1                   │
+│                  itomek/gaia-linux:0.15.1                   │
 │      (Python 3.12 + Node.js + tools)                         │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -221,7 +221,7 @@ ls /host
 │  3. Ready                                                   │
 └─────────────────────────────────────────────────────────────┘
                               │
-                              │ docker exec -it gaia-dev zsh
+                              │ docker exec -it gaia-linux zsh
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   GAIA Container                             │
@@ -286,17 +286,17 @@ The container uses **uv** for Python package installation, which is 10-100x fast
 
 ```bash
 # Check logs
-docker logs gaia-dev
+docker logs gaia-linux
 ```
 
 ### GAIA Install Fails
 
 ```bash
 # Check Python version
-docker exec -it gaia-dev python --version  # Should be 3.12
+docker exec -it gaia-linux python --version  # Should be 3.12
 
 # Manually install
-docker exec -it gaia-dev bash -c "uv pip install --system 'amd-gaia[dev,mcp,eval,rag]==${GAIA_VERSION}'"
+docker exec -it gaia-linux bash -c "uv pip install --system 'amd-gaia[dev,mcp,eval,rag]==${GAIA_VERSION}'"
 ```
 
 ## Advanced Usage
@@ -304,7 +304,7 @@ docker exec -it gaia-dev bash -c "uv pip install --system 'amd-gaia[dev,mcp,eval
 ### Build Image Locally
 
 ```bash
-docker build -t gaia-dev:local .
+docker build -t gaia-linux:local .
 ```
 
 ### Push to Your Own Docker Hub
@@ -314,10 +314,10 @@ docker build -t gaia-dev:local .
 docker login
 
 # Build and tag
-docker build -t yourusername/gaia-dev:0.15.1 .
+docker build -t yourusername/gaia-linux:0.15.1 .
 
 # Push
-docker push yourusername/gaia-dev:0.15.1
+docker push yourusername/gaia-linux:0.15.1
 ```
 
 ## Development

@@ -55,15 +55,58 @@ class TestEnvironmentConfiguration:
         content = entrypoint_path.read_text()
         assert 'GAIA_VERSION="${GAIA_VERSION:-0.15.1}"' in content
 
-    def test_respects_lemonade_base_url_env(self, entrypoint_path):
-        """Should respect LEMONADE_BASE_URL environment variable."""
+    def test_requires_lemonade_base_url_env(self, entrypoint_path):
+        """Should require LEMONADE_BASE_URL environment variable."""
         content = entrypoint_path.read_text()
-        assert 'LEMONADE_BASE_URL="${LEMONADE_BASE_URL:-http://localhost:5000/api/v1}"' in content
+        assert 'if [ -z "$LEMONADE_BASE_URL" ]' in content
+        assert 'ERROR: LEMONADE_BASE_URL environment variable is required' in content
 
     def test_respects_skip_install_env(self, entrypoint_path):
         """Should respect SKIP_INSTALL environment variable."""
         content = entrypoint_path.read_text()
         assert 'SKIP_INSTALL' in content
+
+class TestLemonadeBaseUrlValidation:
+    """Test LEMONADE_BASE_URL validation at runtime."""
+
+    @pytest.mark.integration
+    def test_container_fails_without_lemonade_url(self, project_root):
+        """Container should fail to start without LEMONADE_BASE_URL."""
+        import subprocess
+        import time
+
+        # Try to run container without LEMONADE_BASE_URL
+        result = subprocess.run(
+            ["docker", "run", "--rm", "gaia-linux:test", "sleep", "1"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+
+        # Should fail with error message
+        assert result.returncode != 0
+        assert "ERROR: LEMONADE_BASE_URL environment variable is required" in result.stderr or \
+               "ERROR: LEMONADE_BASE_URL environment variable is required" in result.stdout
+
+    @pytest.mark.integration
+    def test_container_starts_with_lemonade_url(self, project_root):
+        """Container should start successfully with LEMONADE_BASE_URL."""
+        import subprocess
+
+        # Run container with LEMONADE_BASE_URL
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://localhost:5000/api/v1",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "echo", "success"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+
+        # Should succeed
+        assert result.returncode == 0
+
 
 class TestHostDirectoryMount:
     """Test optional host directory mounting."""
