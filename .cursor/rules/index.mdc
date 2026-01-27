@@ -9,7 +9,7 @@ alwaysApply: true
 This is a Linux Docker container for AMD GAIA (AI framework). GAIA is installed from PyPI at container startup.
 
 ## Tech Stack
-- **Base**: Docker & Docker Compose
+- **Base**: Docker
 - **Python**: 3.12+ (managed with uv for fast package installation)
 - **Package Manager**: uv (10-100x faster than pip)
 - **Shell**: zsh (inside container)
@@ -17,7 +17,6 @@ This is a Linux Docker container for AMD GAIA (AI framework). GAIA is installed 
 
 ## Key Files
 - `Dockerfile`: Container image definition with Python 3.12 and tools
-- `docker-compose.yml`: Service configuration with environment variables
 - `entrypoint.sh`: Container startup script (installs GAIA from PyPI)
 - `pyproject.toml`: Python project configuration with test dependencies
 - `tests/`: Integration and unit tests using pytest
@@ -28,10 +27,10 @@ This is a Linux Docker container for AMD GAIA (AI framework). GAIA is installed 
 - Uses uv for Python package installation (much faster than pip)
 
 ## Environment Variables
-Key env vars in docker-compose.yml:
-- `LEMONADE_BASE_URL`: Lemonade server base URL (default: http://localhost:5000/api/v1)
-- `GAIA_VERSION`: GAIA version to install from PyPI
-- `SKIP_INSTALL`: Skip pip install on restart (faster startup)
+Key environment variables for container:
+- `LEMONADE_BASE_URL`: Lemonade server base URL (required)
+- `GAIA_VERSION`: GAIA version to install from PyPI (default: 0.15.1)
+- `SKIP_INSTALL`: Skip pip install on restart (faster startup, default: false)
 
 ## Important Notes
 - This is a Linux container for GAIA

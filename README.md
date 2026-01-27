@@ -18,7 +18,7 @@ GAIA Linux container for [AMD GAIA](https://github.com/amd/gaia). GAIA is instal
 ### Prerequisites
 
 - Docker installed
-- Lemonade base URL (e.g., `http://localhost:5000/api/v1` or your server URL)
+- Lemonade server base URL
 
 ### 1. Pull the Image
 
@@ -36,20 +36,7 @@ docker pull itomek/gaia-linux:0.15.2  # When available
 
 ### 2. Run the Container
 
-**Option A: With Local Lemonade Server**
-
-If you have a Lemonade server running locally:
-
-```bash
-docker run -dit \
-  --name gaia-linux \
-  -e LEMONADE_BASE_URL=http://localhost:5000/api/v1 \
-  itomek/gaia-linux:0.15.1
-```
-
-**Option B: With Remote Lemonade Server**
-
-If you need to use a remote Lemonade server, set the `LEMONADE_BASE_URL` environment variable to your server's URL:
+Set the `LEMONADE_BASE_URL` environment variable to your Lemonade server:
 
 ```bash
 docker run -dit \
@@ -58,30 +45,7 @@ docker run -dit \
   itomek/gaia-linux:0.15.1
 ```
 
-**Note**: You can set any environment variable using the `-e` flag. See the [Environment Variables](#environment-variables) section below for all available options.
-
-**Option C: Using Docker Compose**
-
-Create a `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-
-services:
-  gaia-linux:
-    image: itomek/gaia-linux:0.15.1
-    container_name: gaia-linux
-    environment:
-      - LEMONADE_BASE_URL=http://localhost:5000/api/v1  # Required
-    tty: true
-    stdin_open: true
-```
-
-Then run:
-
-```bash
-docker compose up -d
-```
+You can set any environment variable using the `-e` flag. See the [Environment Variables](#environment-variables) section below for all available options.
 
 ### 3. Connect to Container
 
@@ -99,17 +63,17 @@ For the rest of GAIA usage, see https://github.com/AMD/GAIA
 
 ## Environment Variables
 
-You can configure the container using environment variables. Set them using the `-e` flag with `docker run` or inline with `docker compose`.
+You can configure the container using environment variables. Set them using the `-e` flag with `docker run`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LEMONADE_BASE_URL` | **(required)** | Lemonade server base URL for GAIA LLM features. Example: `http://localhost:5000/api/v1` |
+| `LEMONADE_BASE_URL` | **(required)** | Lemonade server base URL for GAIA LLM features. |
 | `GAIA_VERSION` | `0.15.1` | GAIA version to install from PyPI. Usually matches the image tag, but can be overridden. |
 | `SKIP_INSTALL` | `false` | Skip package installation on startup (faster restarts). |
 
 ### Setting Environment Variables
 
-**With docker run:**
+Use the `-e` flag with `docker run`:
 ```bash
 docker run -dit \
   --name gaia-linux \
@@ -117,16 +81,11 @@ docker run -dit \
   itomek/gaia-linux:0.15.1
 ```
 
-**With docker compose:**
-```bash
-LEMONADE_BASE_URL=https://your-server.com/api/v1 docker compose up -d
-```
-
 ### Lemonade URL Examples
 
-Start your Lemonade server separately, then set `LEMONADE_BASE_URL` to its API endpoint.
+Start your Lemonade server separately, then set `LEMONADE_BASE_URL` to its API endpoint:
 
-- **Local Lemonade server**: `http://localhost:5000/api/v1`
+- **Local server**: `http://localhost:5000/api/v1`
 - **Remote server**: `https://your-remote-server.com/api/v1`
 
 ### External Lemonade
@@ -198,39 +157,47 @@ Follow the same instructions as above, but use your locally built image.
 ### Spawn Multiple Containers
 
 ```bash
-# Default container
-docker compose up -d
+# First container
+docker run -dit \
+  --name gaia-linux-main \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
+  itomek/gaia-linux:0.15.1
 
-# Second container (different name)
-CONTAINER_NAME=gaia-feature \
-  docker compose up -d
-
-# Third container (different name)
-CONTAINER_NAME=gaia-myfork \
-  docker compose up -d
+# Second container
+docker run -dit \
+  --name gaia-linux-feature \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
+  itomek/gaia-linux:0.15.1
 ```
 
 ### Connect to Specific Container
 
 ```bash
-docker exec -it gaia-feature zsh
+docker exec -it gaia-linux-feature zsh
 ```
 
 ### Destroy and Recreate
 
 ```bash
 # Stop and remove
-docker compose down
+docker stop gaia-linux-main && docker rm gaia-linux-main
 
-# Recreate fresh (fast with uv: ~2-3 minutes)
-docker compose up -d
+# Recreate fresh
+docker run -dit \
+  --name gaia-linux-main \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
+  itomek/gaia-linux:0.15.1
 ```
 
 ### Mount Host Directory for File Exchange
 
 ```bash
 # Mount ~/Public to /host in container
-HOST_DIR=/Users/yourname/Public docker compose up -d
+docker run -dit \
+  --name gaia-linux \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
+  -v /Users/yourname/Public:/host \
+  itomek/gaia-linux:0.15.1
 
 # Inside container
 ls /host
@@ -241,11 +208,11 @@ ls /host
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Docker Hub                               │
-│                  itomek/gaia-linux:0.15.1                     │
+│                  itomek/gaia-linux:0.15.1                   │
 │      (Python 3.12 + Node.js + tools)                         │
 └─────────────────────────────────────────────────────────────┘
                               │
-                              │ docker compose up
+                              │ docker run
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   Container Start                            │
@@ -319,10 +286,7 @@ The container uses **uv** for Python package installation, which is 10-100x fast
 
 ```bash
 # Check logs
-docker compose logs
-
-# Check container logs
-docker compose logs
+docker logs gaia-linux
 ```
 
 ### GAIA Install Fails
@@ -337,21 +301,9 @@ docker exec -it gaia-linux bash -c "uv pip install --system 'amd-gaia[dev,mcp,ev
 
 ## Advanced Usage
 
-### Configure Lemonade Server
-
-**LEMONADE_BASE_URL is required** - set it to your Lemonade server's API endpoint.
-
-```bash
-LEMONADE_BASE_URL=https://your-server.com/api/v1 docker compose up -d
-```
-
 ### Build Image Locally
 
 ```bash
-# Build from Dockerfile
-docker compose build
-
-# Or with docker directly
 docker build -t gaia-linux:local .
 ```
 
