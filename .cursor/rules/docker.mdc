@@ -2,7 +2,6 @@
 description: Docker and container-specific rules
 globs:
   - Dockerfile
-  - docker-compose.yml
   - entrypoint.sh
 ---
 

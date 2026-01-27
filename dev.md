@@ -93,11 +93,15 @@ The CI workflow:
 ### Quick Manual Test
 
 ```bash
-docker compose up -d
-docker compose logs -f
+docker run -dit \
+  --name gaia-linux-test \
+  -e LEMONADE_BASE_URL=http://localhost:5000/api/v1 \
+  itomek/gaia-linux:0.15.1
+
+docker logs -f gaia-linux-test
 # Wait for "Ready for development"
-docker exec -it gaia-dev zsh -c "gaia --version"
-docker compose down
+docker exec -it gaia-linux-test zsh -c "gaia --version"
+docker stop gaia-linux-test && docker rm gaia-linux-test
 ```
 
 ### Automated Testing

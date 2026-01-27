@@ -9,7 +9,6 @@ This project provides a Docker container for GAIA (AMD's AI agent platform), bui
 ## Key Files
 
 - **Dockerfile** - Multi-stage container definition
-- **docker-compose.yml** - Development orchestration
 - **entrypoint.sh** - Runtime initialization script
 
 ## Dockerfile Architecture
@@ -67,22 +66,8 @@ ENV TZ="$TZ"
 **Environment variables:**
 - `GAIA_VERSION` - Version to install (default: 0.15.1)
 - `SKIP_INSTALL` - Skip installation for faster restarts (default: false)
-- `LEMONADE_BASE_URL` - Lemonade API endpoint (default: http://localhost:5000/api/v1)
+- `LEMONADE_BASE_URL` - Lemonade API endpoint (required)
 
-## Docker Compose Configuration
-
-**Service:** gaia-dev
-
-**Key configuration:**
-- Image naming: `itomek/gaia-dev:{VERSION}`
-- Container name: Customizable via `CONTAINER_NAME` env var
-- Resource limits: 4 CPUs, 8GB memory (adjustable)
-- Optional host directory mounting via `HOST_DIR`
-- Interactive mode: tty + stdin_open for shell access
-
-**Environment variables:**
-- `LEMONADE_BASE_URL` - Lemonade server configuration
-- `SKIP_INSTALL` - Control GAIA installation behavior
 
 ## Common Tasks
 
@@ -90,13 +75,13 @@ ENV TZ="$TZ"
 
 ```bash
 # Default version (from Dockerfile)
-docker build -t gaia-dev .
+docker build -t gaia-linux .
 
 # Specific GAIA version
-docker build --build-arg GAIA_VERSION=0.15.1 -t gaia-dev:0.15.1 .
+docker build --build-arg GAIA_VERSION=0.15.1 -t gaia-linux:0.15.1 .
 
 # Different timezone
-docker build --build-arg TZ=UTC -t gaia-dev .
+docker build --build-arg TZ=UTC -t gaia-linux .
 ```
 
 ### Multi-Architecture Builds
@@ -107,7 +92,7 @@ The project supports linux/amd64 and linux/arm64:
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   --build-arg GAIA_VERSION=0.15.1 \
-  -t itomek/gaia-dev:0.15.1 \
+  -t itomek/gaia-linux:0.15.1 \
   --push .
 ```
 
@@ -115,13 +100,20 @@ docker buildx build \
 
 ```bash
 # Start container
-docker-compose up -d
+docker run -dit \
+  --name gaia-linux \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
+  itomek/gaia-linux:0.15.1
 
 # Access shell
-docker exec -it gaia-dev zsh
+docker exec -it gaia-linux zsh
 
 # Fast restart (skip GAIA installation)
-SKIP_INSTALL=true docker-compose up -d
+docker run -dit \
+  --name gaia-linux \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
+  -e SKIP_INSTALL=true \
+  itomek/gaia-linux:0.15.1
 ```
 
 ## Best Practices for This Project
