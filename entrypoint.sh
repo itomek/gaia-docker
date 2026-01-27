@@ -22,8 +22,13 @@ else
     echo "Skipping installation (SKIP_INSTALL=true)"
 fi
 
-# Export Lemonade base URL to environment (defaults to localhost:5000)
-LEMONADE_BASE_URL="${LEMONADE_BASE_URL:-http://localhost:5000/api/v1}"
+# Validate required LEMONADE_BASE_URL environment variable
+if [ -z "$LEMONADE_BASE_URL" ]; then
+    echo "ERROR: LEMONADE_BASE_URL environment variable is required."
+    echo "Example: -e LEMONADE_BASE_URL=https://your-server.com/api/v1"
+    exit 1
+fi
+
 export LEMONADE_BASE_URL
 echo "Lemonade base URL: $LEMONADE_BASE_URL"
 

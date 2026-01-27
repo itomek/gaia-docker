@@ -14,7 +14,7 @@ permissions:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: itomek/gaia-dev
+  IMAGE_NAME: itomek/gaia-linux
 
 jobs:
   test:
@@ -113,7 +113,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ env.IMAGE_NAME }}
-          short-description: "GAIA Linux container"
+          short-description: "GAIA Linux runtime container"
           readme-filepath: ./README.md
 
   create-release:

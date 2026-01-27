@@ -11,50 +11,51 @@ GAIA Linux container for [AMD GAIA](https://github.com/amd/gaia). GAIA is instal
 - ✅ **Multi-Instance** - Spawn multiple containers from same image
 - ✅ **Simple Access** - `docker exec` for instant terminal access
 - ✅ **Fast Installation** - Uses `uv` for 10-100x faster Python package installation
-- ✅ **Docker Hub Ready** - Published as `itomek/gaia-dev:<version>` for easy deployment
+- ✅ **Docker Hub Ready** - Published as `itomek/gaia-linux:<version>` for easy deployment
 
 ## Quick Start
 
 ### Prerequisites
 
 - Docker installed
-- (Optional) Lemonade base URL (defaults to `http://localhost:5000/api/v1`)
+- Lemonade base URL (e.g., `http://localhost:5000/api/v1` or your server URL)
 
 ### 1. Pull the Image
 
 **Current version (GAIA 0.15.1):**
 ```bash
-docker pull itomek/gaia-dev:0.15.1
+docker pull itomek/gaia-linux:0.15.1
 ```
 
 **Other available versions:**
 ```bash
-docker pull itomek/gaia-dev:0.15.2  # When available
+docker pull itomek/gaia-linux:0.15.2  # When available
 ```
 
 **Note**: We only publish specific version tags (no `latest` tag). Images are tagged with the GAIA version they contain. The container installs GAIA from PyPI (`amd-gaia` package), so the version matches the PyPI package version.
 
 ### 2. Run the Container
 
-**Option A: Using Default Settings**
+**Option A: With Local Lemonade Server**
 
-The container works out of the box with default settings (LEMONADE_BASE_URL defaults to `http://localhost:5000/api/v1`):
+If you have a Lemonade server running locally:
 
 ```bash
 docker run -dit \
-  --name gaia-dev \
-  itomek/gaia-dev:0.15.1
+  --name gaia-linux \
+  -e LEMONADE_BASE_URL=http://localhost:5000/api/v1 \
+  itomek/gaia-linux:0.15.1
 ```
 
-**Option B: With Custom Lemonade URL**
+**Option B: With Remote Lemonade Server**
 
-If you need to use a different Lemonade server, set the `LEMONADE_BASE_URL` environment variable using the `-e` flag:
+If you need to use a remote Lemonade server, set the `LEMONADE_BASE_URL` environment variable to your server's URL:
 
 ```bash
 docker run -dit \
-  --name gaia-dev \
+  --name gaia-linux \
   -e LEMONADE_BASE_URL=https://your-lemonade-server.com/api/v1 \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-linux:0.15.1
 ```
 
 **Note**: You can set any environment variable using the `-e` flag. See the [Environment Variables](#environment-variables) section below for all available options.
@@ -67,11 +68,11 @@ Create a `docker-compose.yml`:
 version: '3.8'
 
 services:
-  gaia-dev:
-    image: itomek/gaia-dev:0.15.1
-    container_name: gaia-dev
+  gaia-linux:
+    image: itomek/gaia-linux:0.15.1
+    container_name: gaia-linux
     environment:
-      - LEMONADE_BASE_URL=http://localhost:5000/api/v1  # Optional, this is the default
+      - LEMONADE_BASE_URL=http://localhost:5000/api/v1  # Required
     tty: true
     stdin_open: true
 ```
@@ -85,7 +86,7 @@ docker compose up -d
 ### 3. Connect to Container
 
 ```bash
-docker exec -it gaia-dev zsh
+docker exec -it gaia-linux zsh
 ```
 
 ### 4. Start Using GAIA
@@ -102,7 +103,7 @@ You can configure the container using environment variables. Set them using the 
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LEMONADE_BASE_URL` | `http://localhost:5000/api/v1` | Lemonade server base URL for GAIA LLM features. |
+| `LEMONADE_BASE_URL` | **(required)** | Lemonade server base URL for GAIA LLM features. Example: `http://localhost:5000/api/v1` |
 | `GAIA_VERSION` | `0.15.1` | GAIA version to install from PyPI. Usually matches the image tag, but can be overridden. |
 | `SKIP_INSTALL` | `false` | Skip package installation on startup (faster restarts). |
 
@@ -111,9 +112,9 @@ You can configure the container using environment variables. Set them using the 
 **With docker run:**
 ```bash
 docker run -dit \
-  --name gaia-dev \
+  --name gaia-linux \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-linux:0.15.1
 ```
 
 **With docker compose:**
@@ -125,7 +126,7 @@ LEMONADE_BASE_URL=https://your-server.com/api/v1 docker compose up -d
 
 Start your Lemonade server separately, then set `LEMONADE_BASE_URL` to its API endpoint.
 
-- **Default (Lemonade in container)**: `http://localhost:5000/api/v1`
+- **Local Lemonade server**: `http://localhost:5000/api/v1`
 - **Remote server**: `https://your-remote-server.com/api/v1`
 
 ### External Lemonade
@@ -142,7 +143,7 @@ source .cshrc
 This Docker image is versioned to match the GAIA version from PyPI:
 
 - **Current version**: 0.15.1 (matches PyPI `amd-gaia==0.15.1`)
-- **Image tags**: `itomek/gaia-dev:0.15.1` (current version), `itomek/gaia-dev:0.15.2` (future versions when available)
+- **Image tags**: `itomek/gaia-linux:0.15.1` (current version), `itomek/gaia-linux:0.15.2` (future versions when available)
 
 **Note**: We only publish specific version tags (no `latest` tag). Each version is explicitly tagged.
 
@@ -150,10 +151,10 @@ This Docker image is versioned to match the GAIA version from PyPI:
 
 ```bash
 # Current version
-docker pull itomek/gaia-dev:0.15.1
+docker pull itomek/gaia-linux:0.15.1
 
 # Future versions (when available)
-docker pull itomek/gaia-dev:0.15.2
+docker pull itomek/gaia-linux:0.15.2
 ```
 
 The container installs GAIA from PyPI, so the version in the container matches the image tag. You can override the version using the `GAIA_VERSION` environment variable.
@@ -164,7 +165,7 @@ You can use this image as a base in your own Dockerfile. See [docs/dockerfile-us
 
 **Quick example:**
 ```dockerfile
-FROM itomek/gaia-dev:0.15.1
+FROM itomek/gaia-linux:0.15.1
 
 # Add your customizations
 ENV LEMONADE_BASE_URL=https://your-server.com/api/v1
@@ -185,7 +186,7 @@ cd gaia-docker
 ### 2. Build the Image
 
 ```bash
-docker build -t itomek/gaia-dev:0.15.1 .
+docker build -t itomek/gaia-linux:0.15.1 .
 ```
 
 ### 3. Run the Container
@@ -240,7 +241,7 @@ ls /host
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Docker Hub                               │
-│                  itomek/gaia-dev:0.15.1                     │
+│                  itomek/gaia-linux:0.15.1                     │
 │      (Python 3.12 + Node.js + tools)                         │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -253,7 +254,7 @@ ls /host
 │  3. Ready                                                   │
 └─────────────────────────────────────────────────────────────┘
                               │
-                              │ docker exec -it gaia-dev zsh
+                              │ docker exec -it gaia-linux zsh
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   GAIA Container                             │
@@ -328,17 +329,17 @@ docker compose logs
 
 ```bash
 # Check Python version
-docker exec -it gaia-dev python --version  # Should be 3.12
+docker exec -it gaia-linux python --version  # Should be 3.12
 
 # Manually install
-docker exec -it gaia-dev bash -c "uv pip install --system 'amd-gaia[dev,mcp,eval,rag]==${GAIA_VERSION}'"
+docker exec -it gaia-linux bash -c "uv pip install --system 'amd-gaia[dev,mcp,eval,rag]==${GAIA_VERSION}'"
 ```
 
 ## Advanced Usage
 
-### Configure Lemonade Server (Optional)
+### Configure Lemonade Server
 
-**LEMONADE_BASE_URL defaults to `http://localhost:5000/api/v1`** - you only need to set it if using a different Lemonade server.
+**LEMONADE_BASE_URL is required** - set it to your Lemonade server's API endpoint.
 
 ```bash
 LEMONADE_BASE_URL=https://your-server.com/api/v1 docker compose up -d
@@ -351,7 +352,7 @@ LEMONADE_BASE_URL=https://your-server.com/api/v1 docker compose up -d
 docker compose build
 
 # Or with docker directly
-docker build -t gaia-dev:local .
+docker build -t gaia-linux:local .
 ```
 
 ### Push to Your Own Docker Hub
@@ -361,10 +362,10 @@ docker build -t gaia-dev:local .
 docker login
 
 # Build and tag
-docker build -t yourusername/gaia-dev:0.15.1 .
+docker build -t yourusername/gaia-linux:0.15.1 .
 
 # Push
-docker push yourusername/gaia-dev:0.15.1
+docker push yourusername/gaia-linux:0.15.1
 ```
 
 ## Development

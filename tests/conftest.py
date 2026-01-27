@@ -29,14 +29,14 @@ def entrypoint_path(project_root):
 def gaia_container(project_root):
     """Build and start GAIA container for integration tests."""
     subprocess.run(
-        ["docker", "build", "-t", "gaia-dev:test", str(project_root)],
+        ["docker", "build", "-t", "gaia-linux:test", str(project_root)],
         check=True,
         capture_output=True,
         text=True,
         timeout=600
     )
     container = (
-        DockerContainer("gaia-dev:test")
+        DockerContainer("gaia-linux:test")
         .with_env("SKIP_INSTALL", "false")
         .with_command("sleep infinity")
     )
