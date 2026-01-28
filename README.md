@@ -1,114 +1,116 @@
 # GAIA Docker
 
-Docker containers for [AMD GAIA](https://github.com/amd/gaia).
+Docker containers for [AMD GAIA](https://github.com/amd/gaia) - the AI framework for building and deploying intelligent agents.
 
 **Current GAIA Version**: 0.15.1
 
+## Overview
+
+This project provides production-ready Docker containers for AMD GAIA in multiple variants, each optimized for different use cases.
+
 ## Available Containers
 
-| Container | Description | GAIA Source |
-|-----------|-------------|-------------|
-| `itomek/gaia-linux` | Runtime container | Installed from PyPI at startup |
-| `itomek/gaia-dev` | Development container with Claude Code | Cloned from source, pre-installed |
+| Container | Use Case | Installation Method | Documentation |
+|-----------|----------|---------------------|---------------|
+| **gaia-linux** | Production runtime | PyPI at startup | [View Docs](docs/gaia-linux/README.md) |
+| **gaia-dev** | Development + Claude Code | Cloned from source | [View Docs](docs/gaia-dev/README.md) |
+| **gaia-windows** | Windows environments | Planned | [View Docs](docs/gaia-windows/README.md) |
 
----
+## Quick Start
 
-# GAIA Linux (`itomek/gaia-linux`)
+Choose the container that matches your needs:
 
-Runtime container - GAIA installed from PyPI at startup.
+### For Production Use
 
-## 1. Pull Image
+Use `gaia-linux` for running GAIA applications:
 
 ```bash
 docker pull itomek/gaia-linux:0.15.1
-```
-
-## 2. Run Container
-
-```bash
 docker run -dit \
   --name gaia-linux \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   itomek/gaia-linux:0.15.1
 ```
 
-## 3. Connect
+See [gaia-linux documentation](docs/gaia-linux/README.md) for complete usage.
 
-```bash
-docker exec -it gaia-linux zsh
-```
+### For Development
 
-## 4. Use GAIA
-
-```bash
-gaia --version
-```
-
-For the rest of GAIA usage, see https://github.com/AMD/GAIA
-
-## Environment Variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `LEMONADE_BASE_URL` | Yes | - | Lemonade server API endpoint |
-| `GAIA_VERSION` | No | `0.15.1` | PyPI version to install |
-| `SKIP_INSTALL` | No | `false` | Skip package installation for faster restarts |
-
----
-
-# GAIA Dev (`itomek/gaia-dev`)
-
-Development container with Claude Code and dev tools.
-
-## 1. Pull Image
+Use `gaia-dev` for developing GAIA or contributing to the project:
 
 ```bash
 docker pull itomek/gaia-dev:0.15.1
-```
-
-## 2. Run Container
-
-```bash
 docker run -dit \
   --name gaia-dev \
   -v gaia-src:/home/gaia/gaia \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  -e GITHUB_TOKEN=ghp_your_token \
   -e GAIA_REPO_URL=https://github.com/amd/gaia.git \
+  -e GITHUB_TOKEN=ghp_your_token \
   itomek/gaia-dev:0.15.1
 ```
 
-## 3. Connect
+See [gaia-dev documentation](docs/gaia-dev/README.md) for complete usage.
+
+## Key Features
+
+- **Version-pinned**: All images tagged with specific GAIA versions (no `latest` tag)
+- **Fast installation**: Uses `uv` package manager for 10-100x faster installs than pip
+- **Complete isolation**: Each container is fully self-contained
+- **Multi-instance support**: Run multiple GAIA instances on the same host
+- **Production-ready**: Built on official Python images with security best practices
+
+## Container Comparison
+
+### gaia-linux
+- **Best for**: Running GAIA applications, production deployments
+- **GAIA source**: Installed from PyPI at startup
+- **Includes**: Python 3.12, Node.js 20, system dependencies
+- **Size**: Smaller (~1-2 GB)
+- **Startup**: 2-3 minutes first run, 30 seconds cached
+
+### gaia-dev
+- **Best for**: GAIA development, contributions, experimentation
+- **GAIA source**: Cloned from GitHub, editable install
+- **Includes**: Everything in gaia-linux + Claude Code, network isolation tools
+- **Size**: Larger (~2-3 GB)
+- **Startup**: 3-5 minutes first run, 1 minute cached
+
+### gaia-windows (Planned)
+- **Best for**: Windows-specific workflows
+- **Status**: Future feature, in planning phase
+- **Alternative**: Use gaia-linux or gaia-dev with Docker Desktop on Windows
+
+## Documentation
+
+### Container-Specific Docs
+- [gaia-linux Documentation](docs/gaia-linux/README.md) - Runtime container guide
+- [gaia-dev Documentation](docs/gaia-dev/README.md) - Development container guide
+- [gaia-windows Documentation](docs/gaia-windows/README.md) - Windows container (planned)
+
+### Additional Guides
+- [Using as Base Image](docs/dockerfile-usage.md) - Extend containers in your own Dockerfile
+- [Building from Source](CLAUDE.md#development-commands) - Build containers locally
+
+## Version Management
+
+The GAIA version is managed in the `VERSION` file. All containers are tagged with explicit version numbers:
 
 ```bash
-docker exec -it gaia-dev zsh
+# Pull specific version
+docker pull itomek/gaia-linux:0.15.1
+docker pull itomek/gaia-dev:0.15.1
+
+# No "latest" tag - ensures reproducibility
 ```
 
-## 4. Use GAIA
+When a new GAIA version is released:
+1. Update `VERSION` file
+2. CI automatically builds and publishes new images
+3. GitHub release created with version tag
 
-```bash
-gaia --version
-claude  # Start Claude Code
-```
+## Development
 
-## Environment Variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `LEMONADE_BASE_URL` | Yes | - | Lemonade server API endpoint |
-| `GITHUB_TOKEN` | Yes | - | GitHub token for authenticated cloning and CLI |
-| `GAIA_REPO_URL` | Yes | - | Git repository to clone |
-| `ANTHROPIC_API_KEY` | No | - | Claude Code API key (fallback: interactive login) |
-| `SKIP_GAIA_CLONE` | No | `false` | Skip cloning GAIA repository |
-
----
-
-## Additional Documentation
-
-- [Using as Base Image](docs/dockerfile-usage.md)
-- [Building from Source](docs/building.md)
-
-## Testing
+### Running Tests
 
 ```bash
 # Install dependencies
@@ -116,7 +118,35 @@ uv sync
 
 # Run all tests
 uv run pytest tests/ -v
+
+# Run specific test suite
+uv run pytest tests/test_dockerfile.py -v
 ```
+
+### Building Locally
+
+```bash
+# Build gaia-linux
+docker build -f gaia-linux/Dockerfile -t itomek/gaia-linux:0.15.1 .
+
+# Build gaia-dev
+docker build -f gaia-dev/Dockerfile -t itomek/gaia-dev:0.15.1 .
+```
+
+See [CLAUDE.md](CLAUDE.md) for complete development documentation.
+
+## Support
+
+- **GAIA Framework Issues**: https://github.com/amd/gaia/issues
+- **Docker Container Issues**: https://github.com/itomek/gaia-docker/issues
+- **GAIA Documentation**: https://github.com/amd/gaia
+
+## Contributing
+
+Contributions welcome! Please:
+1. Read [CLAUDE.md](CLAUDE.md) for project structure and development workflow
+2. Open an issue to discuss significant changes
+3. Submit pull requests with tests
 
 ## License
 
@@ -124,9 +154,11 @@ MIT License - see [LICENSE](LICENSE) file
 
 ## Related Projects
 
-- [AMD GAIA](https://github.com/amd/gaia) - Main GAIA framework
+- [AMD GAIA](https://github.com/amd/gaia) - The AI framework these containers package
+- [Claude Code](https://claude.ai/code) - AI coding assistant included in gaia-dev
 
-## Support
+---
 
-- **GAIA Issues**: https://github.com/amd/gaia/issues
-- **Docker Issues**: https://github.com/itomek/gaia-docker/issues
+**Docker Hub**:
+- https://hub.docker.com/r/itomek/gaia-linux
+- https://hub.docker.com/r/itomek/gaia-dev
