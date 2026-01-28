@@ -64,6 +64,12 @@ class TestEnvironmentConfiguration:
         assert 'git remote add upstream' in content
         assert 'https://github.com/amd/gaia.git' in content
 
+    def test_handles_skip_gaia_clone(self, entrypoint_dev_path):
+        """Should support SKIP_GAIA_CLONE to skip cloning."""
+        content = entrypoint_dev_path.read_text()
+        assert 'SKIP_GAIA_CLONE' in content
+        assert 'Skipping GAIA clone' in content
+
 
 class TestLemonadeBaseUrlValidation:
     """Test LEMONADE_BASE_URL validation at runtime."""
@@ -94,6 +100,23 @@ class TestLemonadeBaseUrlValidation:
             timeout=30
         )
         assert result.returncode == 0
+
+    @pytest.mark.integration
+    def test_skip_gaia_clone_actually_skips(self, project_root):
+        """SKIP_GAIA_CLONE=true should skip cloning GAIA repository."""
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://localhost:5000/api/v1",
+             "-e", "SKIP_GAIA_CLONE=true",
+             "gaia-dev:test", "echo", "done"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        output = result.stdout + result.stderr
+        assert result.returncode == 0
+        assert "Skipping GAIA clone" in output
+        assert "Cloning GAIA from:" not in output
 
 
 class TestGitHubCLIConfiguration:

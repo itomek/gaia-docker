@@ -124,6 +124,19 @@ class TestDockerfileBuild:
         assert result.returncode == 0
         assert "ffmpeg version" in result.stdout
 
+    def test_github_cli_installed(self, project_root):
+        """Container must have GitHub CLI (gh) installed."""
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "gh", "--version"],
+            capture_output=True,
+            text=True
+        )
+        assert result.returncode == 0
+        assert "gh version" in result.stdout
+
 
 class TestDockerfileOptimization:
     """Test that Dockerfile follows best practices."""
