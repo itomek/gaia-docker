@@ -111,9 +111,34 @@ class TestLemonadeBaseUrlValidation:
 class TestHostDirectoryMount:
     """Test optional host directory mounting."""
 
-    def test_creates_host_mount_point(self, entrypoint_path):
-        """Should create /host directory for optional mounting."""
-        content = entrypoint_path.read_text()
-        # Check that /host is mentioned or created
-        # This might be in Dockerfile instead
-        pass
+    @pytest.mark.integration
+    def test_host_directory_exists(self, project_root):
+        """Container should have /host directory for optional mounting."""
+        import subprocess
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://localhost:5000/api/v1",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "ls", "-ld", "/host"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        assert result.returncode == 0
+        assert "drwxr" in result.stdout or "drwx" in result.stdout
+
+    @pytest.mark.integration
+    def test_host_directory_writable_by_gaia_user(self, project_root):
+        """The /host directory should be writable by gaia user."""
+        import subprocess
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://localhost:5000/api/v1",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "sh", "-c", "touch /host/test_file && rm /host/test_file && echo success"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        assert result.returncode == 0
+        assert "success" in result.stdout
