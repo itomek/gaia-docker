@@ -43,6 +43,14 @@ jobs:
         run: |
           uv run pytest tests/test_entrypoint.py -v --tb=short
 
+      - name: Run Dockerfile.dev build tests
+        run: |
+          uv run pytest tests/test_dockerfile_dev.py -v --tb=short
+
+      - name: Run entrypoint-dev tests
+        run: |
+          uv run pytest tests/test_entrypoint_dev.py -v --tb=short
+
       - name: Run integration tests
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
@@ -90,7 +98,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile
+          file: gaia-linux/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -116,9 +124,64 @@ jobs:
           short-description: "GAIA Linux runtime container"
           readme-filepath: ./README.md
 
+  build-dev:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    env:
+      IMAGE_NAME: itomek/gaia-dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read VERSION file
+        id: version
+        run: |
+          VERSION=$(cat VERSION | tr -d '[:space:]')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "GAIA version: $VERSION"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ steps.version.outputs.version }}
+            type=sha
+
+      - name: Build and push gaia-dev
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: gaia-dev/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            GAIA_VERSION=${{ steps.version.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   create-release:
     runs-on: ubuntu-latest
-    needs: [build-and-push, update-description]
+    needs: [build-and-push, build-dev, update-description]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Create GitHub release
@@ -133,6 +196,8 @@ jobs:
           fi
           gh release create "$VERSION" \
             --title "$VERSION" \
-            --notes "Docker image published: ${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.version }}" \
+            --notes "Docker images published:
+            - itomek/gaia-linux:${{ needs.build-and-push.outputs.version }}
+            - itomek/gaia-dev:${{ needs.build-dev.outputs.version }}" \
             --target "${{ github.sha }}" \
             --repo "$GH_REPO"

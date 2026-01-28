@@ -1,8 +1,21 @@
-# GAIA Docker - Linux Container
+# GAIA Docker
 
-GAIA Linux container for [AMD GAIA](https://github.com/amd/gaia). GAIA is installed from PyPI at startup.
+Docker containers for [AMD GAIA](https://github.com/amd/gaia).
 
-**Current GAIA Version**: 0.15.1 (matches PyPI `amd-gaia` package)
+**Current GAIA Version**: 0.15.1
+
+## Available Containers
+
+| Container | Description | GAIA Source |
+|-----------|-------------|-------------|
+| `itomek/gaia-linux` | Runtime container | Installed from PyPI at startup |
+| `itomek/gaia-dev` | Development container with Claude Code | Cloned from source, pre-installed |
+
+---
+
+# GAIA Linux Container (`itomek/gaia-linux`)
+
+Runtime container where GAIA is installed from PyPI at startup.
 
 ## Features
 
@@ -251,6 +264,110 @@ In workspace root:
     python.mdc         # Python development rules (auto-applied to .py files)
 .cursorignore          # Files to exclude from Cursor analysis
 ```
+
+---
+
+# GAIA Development Container (`itomek/gaia-dev`)
+
+Development container with GAIA source code, Claude Code, and development tools pre-installed.
+
+## Features
+
+- GAIA source code cloned at `~/gaia`
+- Claude Code pre-installed for AI-assisted development
+- GitHub CLI pre-installed
+- All GAIA dependencies pre-built (no install time at startup)
+- oh-my-zsh shell environment
+
+## Quick Start
+
+### 1. Pull the Image
+
+```bash
+docker pull itomek/gaia-dev
+```
+
+### 2. Run the Container
+
+```bash
+docker run -dit \
+  --name gaia-dev \
+  -v gaia-src:/home/gaia/gaia \
+  -e LEMONADE_BASE_URL=https://your-lemonade-server.com/api/v1 \
+  -e GITHUB_TOKEN=ghp_your_token_here \
+  -e ANTHROPIC_API_KEY=sk-ant-api03-... \
+  itomek/gaia-dev
+```
+
+The `-v gaia-src:/home/gaia/gaia` creates a named volume that persists your GAIA source code changes. On first run, GAIA is cloned from GitHub. Subsequent runs reuse your existing code.
+
+### 3. Connect to Container
+
+```bash
+docker exec -it gaia-dev zsh
+```
+
+### 4. Available Commands
+
+```bash
+claude           # Start Claude Code
+gh               # GitHub CLI
+gaia --version   # Verify GAIA installation
+cd ~/gaia        # Access GAIA source code
+```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `LEMONADE_BASE_URL` | **Yes** | Lemonade server base URL |
+| `GAIA_REPO_URL` | No | GAIA git repository URL (default: `https://github.com/amd/gaia.git`) |
+| `GITHUB_TOKEN` | No | GitHub token for authenticated cloning and CLI |
+| `ANTHROPIC_API_KEY` | No | Claude Code API key (fallback: interactive login) |
+
+### Using a Fork
+
+To use your own GAIA fork:
+
+```bash
+docker run -dit \
+  --name gaia-dev \
+  -v gaia-src:/home/gaia/gaia \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
+  -e GAIA_REPO_URL=https://github.com/yourusername/gaia.git \
+  -e GITHUB_TOKEN=ghp_your_token_here \
+  itomek/gaia-dev
+```
+
+The `GITHUB_TOKEN` is used for authenticated cloning (required for private forks).
+
+When using a fork, an `upstream` remote is automatically added pointing to `https://github.com/amd/gaia.git` for syncing with the main repository.
+
+## Claude Code Sandbox Mode
+
+For full Claude Code sandbox mode with network isolation, run with the required capabilities:
+
+```bash
+docker run -dit \
+  --name gaia-dev \
+  --cap-add=NET_ADMIN --cap-add=NET_RAW \
+  -v gaia-src:/home/gaia/gaia \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
+  -e ANTHROPIC_API_KEY=sk-ant-api03-... \
+  itomek/gaia-dev
+```
+
+The container includes all required packages for Claude Code sandboxing (`iptables`, `ipset`, `iproute2`). The `--cap-add` flags enable network isolation so Claude Code can enforce security boundaries.
+
+Inside the container, enable sandbox mode:
+```bash
+claude
+/sandbox
+```
+
+Reference: https://code.claude.com/docs/en/sandboxing
+
+---
 
 ## Testing
 

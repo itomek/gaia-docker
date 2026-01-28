@@ -53,7 +53,7 @@ RUN mkdir -p /source /host && \
     chown -R $USERNAME:$USERNAME /source /host
 
 # Copy entrypoint script
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY gaia-linux/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Switch to gaia user
