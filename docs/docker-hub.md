@@ -1,98 +1,106 @@
 # Using GAIA Docker from Docker Hub
 
-This image is published on Docker Hub as `itomek/gaia-linux:<version>`. This is a Linux container.
+This image is published on Docker Hub as `itomek/gaia-linux:<version>` and `itomek/gaia-dev:<version>`.
 
-**Current GAIA Version**: 0.15.1 (matches PyPI `amd-gaia` package)
+**Current GAIA Version**: 0.15.1
 
 ## Versioning
 
-Images are tagged with the GAIA version they contain. We only publish specific version tags (no `latest` tag). The container installs GAIA from PyPI, so the version matches the `amd-gaia` package version.
+Images are tagged with the GAIA version they contain. We only publish specific version tags (no `latest` tag).
 
 - `itomek/gaia-linux:0.15.1` - Current version
-- `itomek/gaia-linux:0.15.2` - Future versions (when available)
+- `itomek/gaia-dev:0.15.1` - Current version
 
-## Quick Start
+---
 
-### 1. Pull the Image
+# GAIA Linux (`itomek/gaia-linux`)
 
-**Current version:**
+Runtime container - GAIA installed from PyPI at startup.
+
+## 1. Pull Image
+
 ```bash
 docker pull itomek/gaia-linux:0.15.1
 ```
 
-**Other versions:**
-```bash
-docker pull itomek/gaia-linux:0.15.2  # When available
-```
-
-### 2. Run the Container
-
-**LEMONADE_BASE_URL is required** - set it to your Lemonade server's API endpoint.
+## 2. Run Container
 
 ```bash
 docker run -dit \
   --name gaia-linux \
-  -e LEMONADE_BASE_URL=https://your-lemonade-server.com/api/v1 \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   itomek/gaia-linux:0.15.1
 ```
 
-### 3. Connect to Container
+## 3. Connect
 
 ```bash
 docker exec -it gaia-linux zsh
 ```
 
+## 4. Use GAIA
+
+```bash
+gaia --version
+```
 
 ## Environment Variables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `LEMONADE_BASE_URL` | **Yes** | N/A | Lemonade server base URL |
-| `GAIA_VERSION` | No | `0.15.1` | GAIA version to install from PyPI (matches image tag) |
-| `SKIP_INSTALL` | No | `false` | Skip package installation on startup |
+| `LEMONADE_BASE_URL` | Yes | - | Lemonade server API endpoint |
+| `GAIA_VERSION` | No | `0.15.1` | PyPI version to install |
+| `SKIP_INSTALL` | No | `false` | Skip package installation |
 
-## First Run
+---
 
-On first run, the container will:
-1. Install GAIA version from PyPI (~2-3 minutes)
-2. Install all dependencies
-3. Be ready for use
+# GAIA Dev (`itomek/gaia-dev`)
 
-Subsequent starts are much faster (~30 seconds) if `SKIP_INSTALL=true`.
+Development container with Claude Code and dev tools.
 
-**Note**: GAIA is installed from PyPI (`amd-gaia` package), not cloned from git. The version matches the Docker image tag.
-
-## Usage
-
-Once the container is running:
+## 1. Pull Image
 
 ```bash
-# Connect to container
-docker exec -it gaia-linux zsh
+docker pull itomek/gaia-dev:0.15.1
+```
 
-# Test GAIA (already installed)
+## 2. Run Container
+
+```bash
+docker run -dit \
+  --name gaia-dev \
+  -v gaia-src:/home/gaia/gaia \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
+  -e GITHUB_TOKEN=ghp_your_token \
+  -e GAIA_REPO_URL=https://github.com/amd/gaia.git \
+  itomek/gaia-dev:0.15.1
+```
+
+## 3. Connect
+
+```bash
+docker exec -it gaia-dev zsh
+```
+
+## 4. Use GAIA
+
+```bash
 gaia --version
+claude  # Start Claude Code
 ```
 
-For the rest of GAIA usage, see https://github.com/AMD/GAIA
+## Environment Variables
 
-## Troubleshooting
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `LEMONADE_BASE_URL` | Yes | - | Lemonade server API endpoint |
+| `GITHUB_TOKEN` | Yes | - | GitHub token for authenticated cloning and CLI |
+| `GAIA_REPO_URL` | Yes | - | Git repository to clone |
+| `ANTHROPIC_API_KEY` | No | - | Claude Code API key (fallback: interactive login) |
+| `SKIP_GAIA_CLONE` | No | `false` | Skip cloning GAIA repository |
 
-### Container exits immediately
+---
 
-Check logs:
-```bash
-docker logs gaia-linux
-```
+## Documentation
 
-If the container exits, check the logs for specific error messages. Make sure you provided the required LEMONADE_BASE_URL environment variable.
-
-### GAIA says "Lemonade server is not running"
-
-Verify `LEMONADE_BASE_URL` is set correctly:
-```bash
-docker exec gaia-linux env | grep LEMONADE_BASE_URL
-```
-
-Make sure the URL is accessible from inside the container.
-
+Full documentation: https://github.com/itomek/gaia-docker

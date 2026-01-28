@@ -149,9 +149,10 @@ Integration tests only run on pushes to main (not PRs) to save CI time.
 
 ### gaia-dev
 - `LEMONADE_BASE_URL` (required): Lemonade server API endpoint
-- `GAIA_REPO_URL` (default: https://github.com/amd/gaia.git): Git repository to clone
-- `GITHUB_TOKEN` (optional): Token for authenticated cloning and gh CLI
+- `GAIA_REPO_URL` (required): Git repository to clone
+- `GITHUB_TOKEN` (required): Token for authenticated cloning and gh CLI
 - `ANTHROPIC_API_KEY` (optional): Claude Code API key (fallback: interactive login)
+- `SKIP_GAIA_CLONE` (default: false): Skip cloning GAIA repository
 
 ## Testing Strategy
 
