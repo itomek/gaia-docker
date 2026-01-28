@@ -19,10 +19,13 @@ echo "Lemonade base URL: $LEMONADE_BASE_URL"
 # Clone GAIA source if not present (first run with empty volume)
 GAIA_DIR="/home/gaia/gaia"
 GAIA_REPO_URL="${GAIA_REPO_URL:-https://github.com/amd/gaia.git}"
+SKIP_GAIA_CLONE="${SKIP_GAIA_CLONE:-false}"
 
 UPSTREAM_URL="https://github.com/amd/gaia.git"
 
-if [ ! -d "$GAIA_DIR/.git" ]; then
+if [ "$SKIP_GAIA_CLONE" = "true" ]; then
+    echo "Skipping GAIA clone (SKIP_GAIA_CLONE=true)"
+elif [ ! -d "$GAIA_DIR/.git" ]; then
     echo "Cloning GAIA from: $GAIA_REPO_URL"
 
     # Use token authentication if GITHUB_TOKEN is set

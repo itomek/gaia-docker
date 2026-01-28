@@ -87,6 +87,7 @@ class TestLemonadeBaseUrlValidation:
         result = subprocess.run(
             ["docker", "run", "--rm",
              "-e", "LEMONADE_BASE_URL=http://localhost:5000/api/v1",
+             "-e", "SKIP_GAIA_CLONE=true",
              "gaia-dev:test", "echo", "success"],
             capture_output=True,
             text=True,
@@ -105,6 +106,7 @@ class TestGitHubCLIConfiguration:
             ["docker", "run", "--rm",
              "-e", "LEMONADE_BASE_URL=http://test",
              "-e", "GITHUB_TOKEN=ghp_test_token_invalid",
+             "-e", "SKIP_GAIA_CLONE=true",
              "gaia-dev:test", "echo", "started"],
             capture_output=True,
             text=True,
@@ -119,6 +121,7 @@ class TestGitHubCLIConfiguration:
         result = subprocess.run(
             ["docker", "run", "--rm",
              "-e", "LEMONADE_BASE_URL=http://test",
+             "-e", "SKIP_GAIA_CLONE=true",
              "gaia-dev:test", "echo", "done"],
             capture_output=True,
             text=True,
@@ -138,6 +141,7 @@ class TestClaudeCodeConfiguration:
             ["docker", "run", "--rm",
              "-e", "LEMONADE_BASE_URL=http://test",
              "-e", "ANTHROPIC_API_KEY=sk-ant-test",
+             "-e", "SKIP_GAIA_CLONE=true",
              "gaia-dev:test", "echo", "done"],
             capture_output=True,
             text=True,
@@ -152,6 +156,7 @@ class TestClaudeCodeConfiguration:
         result = subprocess.run(
             ["docker", "run", "--rm",
              "-e", "LEMONADE_BASE_URL=http://test",
+             "-e", "SKIP_GAIA_CLONE=true",
              "gaia-dev:test", "echo", "done"],
             capture_output=True,
             text=True,
