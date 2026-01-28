@@ -14,7 +14,7 @@ class TestDockerfileBuild:
     def test_dockerfile_builds(self, project_root):
         """Dockerfile must build without errors."""
         result = subprocess.run(
-            ["docker", "build", "-t", "gaia-dev:test", str(project_root)],
+            ["docker", "build", "-t", "gaia-linux:test", "-f", "gaia-linux/Dockerfile", str(project_root)],
             capture_output=True,
             text=True,
             timeout=600
@@ -24,7 +24,10 @@ class TestDockerfileBuild:
     def test_python_version(self, project_root):
         """Container must have Python 3.12."""
         result = subprocess.run(
-            ["docker", "run", "--rm", "gaia-dev:test", "python", "--version"],
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "python", "--version"],
             capture_output=True,
             text=True
         )
@@ -33,17 +36,24 @@ class TestDockerfileBuild:
     def test_nodejs_installed(self, project_root):
         """Container must have Node.js 20."""
         result = subprocess.run(
-            ["docker", "run", "--rm", "gaia-dev:test", "node", "--version"],
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "node", "--version"],
             capture_output=True,
             text=True
         )
         assert result.returncode == 0
-        assert result.stdout.startswith("v20.")
+        last_line = result.stdout.strip().splitlines()[-1]
+        assert last_line.startswith("v20.")
 
     def test_git_installed(self, project_root):
         """Container must have git."""
         result = subprocess.run(
-            ["docker", "run", "--rm", "gaia-dev:test", "git", "--version"],
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "git", "--version"],
             capture_output=True,
             text=True
         )
@@ -53,26 +63,23 @@ class TestDockerfileBuild:
     def test_zsh_installed(self, project_root):
         """Container must have zsh as shell."""
         result = subprocess.run(
-            ["docker", "run", "--rm", "gaia-dev:test", "zsh", "--version"],
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "zsh", "--version"],
             capture_output=True,
             text=True
         )
         assert result.returncode == 0
         assert "zsh" in result.stdout.lower()
 
-    def test_claude_code_installed(self, project_root):
-        """Container must have Claude Code CLI."""
-        result = subprocess.run(
-            ["docker", "run", "--rm", "gaia-dev:test", "claude", "--version"],
-            capture_output=True,
-            text=True
-        )
-        assert result.returncode == 0
-
     def test_uv_installed(self, project_root):
         """Container must have uv (fast Python package installer)."""
         result = subprocess.run(
-            ["docker", "run", "--rm", "gaia-dev:test", "uv", "--version"],
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "uv", "--version"],
             capture_output=True,
             text=True
         )
@@ -82,16 +89,23 @@ class TestDockerfileBuild:
     def test_gaia_user_exists(self, project_root):
         """Container must have 'gaia' user."""
         result = subprocess.run(
-            ["docker", "run", "--rm", "gaia-dev:test", "whoami"],
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "whoami"],
             capture_output=True,
             text=True
         )
-        assert result.stdout.strip() == "gaia"
+        last_line = result.stdout.strip().splitlines()[-1]
+        assert last_line == "gaia"
 
     def test_workspace_directory(self, project_root):
         """Container must have /source directory."""
         result = subprocess.run(
-            ["docker", "run", "--rm", "gaia-dev:test", "ls", "-d", "/source"],
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "ls", "-d", "/source"],
             capture_output=True,
             text=True
         )
@@ -100,7 +114,10 @@ class TestDockerfileBuild:
     def test_ffmpeg_installed(self, project_root):
         """Container must have ffmpeg for audio processing."""
         result = subprocess.run(
-            ["docker", "run", "--rm", "gaia-dev:test", "ffmpeg", "-version"],
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "ffmpeg", "-version"],
             capture_output=True,
             text=True
         )

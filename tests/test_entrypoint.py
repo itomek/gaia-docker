@@ -25,37 +25,13 @@ class TestEntrypointScript:
         assert "set -e" in content
 
 
-class TestGitCloning:
-    """Test GAIA repository cloning functionality."""
-
-    @pytest.mark.integration
-    def test_clones_gaia_repo(self, container_exec):
-        """Should clone GAIA repository on startup."""
-        result = container_exec("test -d /source/gaia/.git")
-        assert result.exit_code == 0
-
-    @pytest.mark.integration
-    def test_uses_correct_branch(self, container_exec):
-        """Should clone specified branch."""
-        result = container_exec("cd /source/gaia && git branch --show-current")
-        assert "main" in result.output.decode()
-
-    @pytest.mark.integration
-    def test_shallow_clone(self, container_exec):
-        """Should use shallow clone (--depth 1) for speed."""
-        result = container_exec("cd /source/gaia && git rev-list --count HEAD")
-        # Shallow clone should have limited history
-        count = int(result.output.decode().strip())
-        assert count < 100, "Clone not shallow (has too much history)"
-
-
 class TestDependencyInstallation:
     """Test GAIA dependency installation."""
 
     @pytest.mark.integration
     def test_gaia_installed(self, container_exec):
         """Should install GAIA package."""
-        result = container_exec("python -c 'import gaia; print(gaia.__version__)'")
+        result = container_exec("python -c 'import gaia'")
         assert result.exit_code == 0
 
     @pytest.mark.integration
@@ -74,31 +50,62 @@ class TestDependencyInstallation:
 class TestEnvironmentConfiguration:
     """Test environment variable handling."""
 
-    def test_respects_gaia_branch_env(self, entrypoint_path):
-        """Should respect GAIA_BRANCH environment variable."""
+    def test_respects_gaia_version_env(self, entrypoint_path):
+        """Should respect GAIA_VERSION environment variable."""
         content = entrypoint_path.read_text()
-        assert 'GAIA_BRANCH="${GAIA_BRANCH:-main}"' in content
+        assert 'GAIA_VERSION="${GAIA_VERSION:-0.15.1}"' in content
 
-    def test_respects_gaia_repo_env(self, entrypoint_path):
-        """Should respect GAIA_REPO environment variable."""
+    def test_requires_lemonade_base_url_env(self, entrypoint_path):
+        """Should require LEMONADE_BASE_URL environment variable."""
         content = entrypoint_path.read_text()
-        assert 'GAIA_REPO=' in content
-        assert 'github.com/amd/gaia' in content
+        assert 'if [ -z "$LEMONADE_BASE_URL" ]' in content
+        assert 'ERROR: LEMONADE_BASE_URL environment variable is required' in content
 
     def test_respects_skip_install_env(self, entrypoint_path):
         """Should respect SKIP_INSTALL environment variable."""
         content = entrypoint_path.read_text()
         assert 'SKIP_INSTALL' in content
 
+class TestLemonadeBaseUrlValidation:
+    """Test LEMONADE_BASE_URL validation at runtime."""
 
-class TestGitHubTokenHandling:
-    """Test GitHub token configuration."""
+    @pytest.mark.integration
+    def test_container_fails_without_lemonade_url(self, project_root):
+        """Container should fail to start without LEMONADE_BASE_URL."""
+        import subprocess
+        import time
 
-    def test_no_github_token_needed(self, entrypoint_path):
-        """Should not require GitHub token for public repos."""
-        content = entrypoint_path.read_text()
-        # Entrypoint should work without GitHub token
-        assert "No GitHub token needed" in content or "public" in content.lower()
+        # Try to run container without LEMONADE_BASE_URL
+        result = subprocess.run(
+            ["docker", "run", "--rm", "gaia-linux:test", "sleep", "1"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+
+        # Should fail with error message
+        assert result.returncode != 0
+        assert "ERROR: LEMONADE_BASE_URL environment variable is required" in result.stderr or \
+               "ERROR: LEMONADE_BASE_URL environment variable is required" in result.stdout
+
+    @pytest.mark.integration
+    def test_container_starts_with_lemonade_url(self, project_root):
+        """Container should start successfully with LEMONADE_BASE_URL."""
+        import subprocess
+
+        # Run container with LEMONADE_BASE_URL
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://localhost:5000/api/v1",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "echo", "success"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+
+        # Should succeed
+        assert result.returncode == 0
 
 
 class TestHostDirectoryMount:

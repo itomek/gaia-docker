@@ -40,8 +40,8 @@ ENV GAIA_VERSION=0.15.1
 ```dockerfile
 FROM itomek/gaia-dev:0.15.1
 
-# Set custom Lemonade URL
-ENV LEMONADE_URL=https://your-server.com/api/v1
+# Set custom Lemonade base URL
+ENV LEMONADE_BASE_URL=https://your-server.com/api/v1
 
 # Add your custom setup
 RUN your-custom-commands
@@ -58,7 +58,7 @@ RUN apt-get update && \
     apt-get clean
 
 # Set up custom configuration
-ENV LEMONADE_URL=https://your-lemonade-server.com/api/v1
+ENV LEMONADE_BASE_URL=https://your-lemonade-server.com/api/v1
 ENV CUSTOM_VAR=value
 
 # Copy your scripts

@@ -1,10 +1,18 @@
 #!/bin/bash
 set -e
 
-# GAIA Development Container Entrypoint
-# Clones GAIA repository and installs dependencies at runtime
+# GAIA Linux Container Entrypoint
+# Installs GAIA from PyPI at runtime
 
-echo "=== GAIA Development Container ==="
+echo "=== GAIA Linux Container ==="
+
+# Validate required LEMONADE_BASE_URL environment variable FIRST
+# This ensures fast failure if the required environment variable is missing
+if [ -z "$LEMONADE_BASE_URL" ]; then
+    echo "ERROR: LEMONADE_BASE_URL environment variable is required."
+    echo "Example: -e LEMONADE_BASE_URL=https://your-server.com/api/v1"
+    exit 1
+fi
 
 # Configuration from environment variables
 GAIA_VERSION="${GAIA_VERSION:-0.15.1}"
@@ -22,16 +30,13 @@ else
     echo "Skipping installation (SKIP_INSTALL=true)"
 fi
 
-# Export LEMONADE_URL to environment (defaults to localhost:5000)
-LEMONADE_URL="${LEMONADE_URL:-http://localhost:5000/api/v1}"
-export LEMONADE_URL
-echo "Lemonade server: $LEMONADE_URL"
+export LEMONADE_BASE_URL
+echo "Lemonade base URL: $LEMONADE_BASE_URL"
 
 echo ""
-echo "=== Ready for development ==="
+echo "=== Ready ==="
 echo ""
 echo "GAIA version: $GAIA_VERSION"
-echo "Claude Code: Run 'claude' to start (OAuth login on first use)"
 echo "Access: docker exec -it <container> zsh"
 echo ""
 
