@@ -6,6 +6,14 @@ set -e
 
 echo "=== GAIA Linux Container ==="
 
+# Validate required LEMONADE_BASE_URL environment variable FIRST
+# This ensures fast failure if the required environment variable is missing
+if [ -z "$LEMONADE_BASE_URL" ]; then
+    echo "ERROR: LEMONADE_BASE_URL environment variable is required."
+    echo "Example: -e LEMONADE_BASE_URL=https://your-server.com/api/v1"
+    exit 1
+fi
+
 # Configuration from environment variables
 GAIA_VERSION="${GAIA_VERSION:-0.15.1}"
 SKIP_INSTALL="${SKIP_INSTALL:-false}"
@@ -20,13 +28,6 @@ if [ "$SKIP_INSTALL" != "true" ]; then
     echo "Installation completed."
 else
     echo "Skipping installation (SKIP_INSTALL=true)"
-fi
-
-# Validate required LEMONADE_BASE_URL environment variable
-if [ -z "$LEMONADE_BASE_URL" ]; then
-    echo "ERROR: LEMONADE_BASE_URL environment variable is required."
-    echo "Example: -e LEMONADE_BASE_URL=https://your-server.com/api/v1"
-    exit 1
 fi
 
 export LEMONADE_BASE_URL

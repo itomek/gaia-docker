@@ -49,6 +49,7 @@ def gaia_container(project_root):
     )
     container = (
         DockerContainer("gaia-linux:test")
+        .with_env("LEMONADE_BASE_URL", "http://localhost:5000/api/v1")
         .with_env("SKIP_INSTALL", "false")
         .with_command("sleep infinity")
     )
