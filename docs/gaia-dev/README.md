@@ -2,7 +2,7 @@
 
 Docker container for [AMD GAIA](https://github.com/amd/gaia) - Development edition with Claude Code.
 
-**Current GAIA Version**: 0.15.1
+**Current Container Version**: 1.0.0
 
 ## Overview
 
@@ -23,7 +23,7 @@ The `itomek/gaia-dev` container provides a complete AMD GAIA development environ
 ### 1. Pull Image
 
 ```bash
-docker pull itomek/gaia-dev:0.15.1
+docker pull itomek/gaia-dev:1.0.0
 ```
 
 ### 2. Run Container
@@ -36,7 +36,7 @@ docker run -dit \
   -e GAIA_REPO_URL=https://github.com/amd/gaia.git \
   -e GITHUB_TOKEN=ghp_your_token \
   -e ANTHROPIC_API_KEY=sk-ant-your_key \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-dev:1.0.0
 ```
 
 **Note**: Using a named volume (`gaia-src:/home/gaia/gaia`) persists the GAIA source code between container restarts, avoiding re-cloning.
@@ -146,7 +146,7 @@ gh issue list
 You can extend this image for your own development environment:
 
 ```dockerfile
-FROM itomek/gaia-dev:0.15.1
+FROM itomek/gaia-dev:1.0.0
 
 # Install additional development tools
 RUN apt-get update && \
@@ -167,15 +167,14 @@ For more examples, see [Dockerfile usage guide](../dockerfile-usage.md).
 
 ## Versioning
 
-Images are tagged to indicate GAIA compatibility:
+The gaia-dev container uses independent versioning from the GAIA package:
 
-- `itomek/gaia-dev:0.15.1` - Compatible with GAIA 0.15.1
-- `itomek/gaia-dev:0.15.2` - Compatible with GAIA 0.15.2
-- etc.
+- Container versions (e.g., `itomek/gaia-dev:1.0.0`) indicate development environment features
+- The actual GAIA version installed depends on what you clone from `GAIA_REPO_URL`
+- All versions are explicitly tagged (no `latest` tag for reproducibility)
 
-The actual GAIA version installed depends on what you clone from `GAIA_REPO_URL`.
-
-We do not publish a `latest` tag to ensure reproducibility.
+Version history:
+- `1.0.0` - Development container with Claude Code, virtual environment, and editable GAIA install
 
 ## Volume Persistence
 
@@ -189,7 +188,7 @@ docker run -dit \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   -e GAIA_REPO_URL=https://github.com/amd/gaia.git \
   -e GITHUB_TOKEN=ghp_your_token \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-dev:1.0.0
 
 # Stop and remove container
 docker stop gaia-dev && docker rm gaia-dev
@@ -202,7 +201,7 @@ docker run -dit \
   -e GAIA_REPO_URL=https://github.com/amd/gaia.git \
   -e GITHUB_TOKEN=ghp_your_token \
   -e SKIP_GAIA_CLONE=true \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-dev:1.0.0
 ```
 
 ## Troubleshooting
@@ -236,7 +235,7 @@ docker run -dit \
   -v gaia-src:/home/gaia/gaia \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   -e SKIP_GAIA_CLONE=true \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-dev:1.0.0
 ```
 
 ## Support
