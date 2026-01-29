@@ -1,14 +1,29 @@
 # Documentation
 
-This directory contains supplementary documentation for the GAIA Docker project.
+This directory contains documentation for the GAIA Docker project.
 
-## Table of Contents
+## Container Documentation
 
-- **[docker-hub.md](docker-hub.md)** - Complete guide for using the image from Docker Hub
-- **[docker-hub-description.md](docker-hub-description.md)** - Docker Hub image description (used automatically by CI)
-- **[dockerfile-usage.md](dockerfile-usage.md)** - How to use this image in your own Dockerfile
+Each container variant has its own dedicated documentation:
+
+- **[gaia-linux/](gaia-linux/README.md)** - Runtime container documentation (for Docker Hub: itomek/gaia-linux)
+- **[gaia-dev/](gaia-dev/README.md)** - Development container documentation (for Docker Hub: itomek/gaia-dev)
+- **[gaia-windows/](gaia-windows/README.md)** - Windows container documentation (planned feature)
+
+## Additional Guides
+
+- **[dockerfile-usage.md](dockerfile-usage.md)** - How to use GAIA containers as base images in your own Dockerfile
+
+## Docker Hub Sync
+
+The container-specific READMEs are used as Docker Hub descriptions:
+- `gaia-linux/README.md` → https://hub.docker.com/r/itomek/gaia-linux
+- `gaia-dev/README.md` → https://hub.docker.com/r/itomek/gaia-dev
+
+This ensures Docker Hub documentation stays in sync with the repository.
 
 ## Quick Links
 
-- **Main README**: [../README.md](../README.md)
-- **Docker Hub**: https://hub.docker.com/r/itomek/gaia-dev
+- **Main README**: [../README.md](../README.md) - Project overview and quick start
+- **Development Guide**: [../CLAUDE.md](../CLAUDE.md) - Development workflow, testing, CI/CD
+- **Docker Hub**: https://hub.docker.com/u/itomek
