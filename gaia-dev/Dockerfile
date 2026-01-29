@@ -69,6 +69,9 @@ ARG ZSH_IN_DOCKER_VERSION=1.2.0
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh)" -- \
     -p git -p fzf -p python -x
 
+# Ensure virtual environment is activated in interactive shells
+RUN echo 'source /home/gaia/.venv/bin/activate' >> /home/gaia/.zshrc
+
 # Install uv (fast Python package installer)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 

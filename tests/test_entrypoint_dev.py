@@ -70,13 +70,28 @@ class TestEnvironmentConfiguration:
         assert 'SKIP_GAIA_CLONE' in content
         assert 'Skipping GAIA clone' in content
 
-    def test_installs_without_sudo(self, entrypoint_dev_path):
-        """Should install GAIA without sudo (using venv)."""
+    def test_entrypoint_activates_venv(self, entrypoint_dev_path):
+        """Entrypoint should activate virtual environment."""
         content = entrypoint_dev_path.read_text()
-        # Should use uv pip install without sudo and --system
-        assert 'uv pip install -e' in content
-        # Should NOT use sudo for pip install
-        assert 'sudo /home/gaia/.local/bin/uv pip install --system' not in content
+        assert 'source /home/gaia/.venv/bin/activate' in content
+
+    def test_shows_setup_instructions(self, entrypoint_dev_path):
+        """Entrypoint should show first-time setup instructions."""
+        content = entrypoint_dev_path.read_text()
+        assert 'First-time setup' in content
+        assert 'uv pip install' in content  # in instructions, not exec
+
+    def test_no_auto_install(self, entrypoint_dev_path):
+        """Should NOT auto-install GAIA packages (user does this manually)."""
+        content = entrypoint_dev_path.read_text()
+        # Should NOT have the old auto-install code
+        assert 'echo "Installing GAIA dependencies..."' not in content
+        # Instructions are okay, but not actual execution
+        lines = content.split('\n')
+        for line in lines:
+            if 'uv pip install -e' in line:
+                # If found, should be in echo statement (instructions), not actual command
+                assert line.strip().startswith('echo')
 
 
 class TestLemonadeBaseUrlValidation:

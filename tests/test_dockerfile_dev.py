@@ -138,11 +138,11 @@ class TestGaiaSourceCode:
         assert "git clone" in content
         assert "github.com/amd/gaia" in content
 
-    def test_entrypoint_installs_deps(self, entrypoint_dev_path):
-        """Entrypoint should install GAIA dependencies."""
+    def test_entrypoint_shows_setup_instructions(self, entrypoint_dev_path):
+        """Entrypoint should show setup instructions (not auto-install)."""
         content = entrypoint_dev_path.read_text()
+        assert "First-time setup" in content
         assert "uv pip install" in content
-        assert "[dev,mcp,eval,rag]" in content
 
     @pytest.mark.integration
     def test_gaia_cloned_on_first_run(self, project_root):
@@ -151,19 +151,6 @@ class TestGaiaSourceCode:
             ["docker", "run", "--rm",
              "-e", "LEMONADE_BASE_URL=http://test",
              "gaia-dev:test", "ls", "-d", "/home/gaia/gaia/.git"],
-            capture_output=True,
-            text=True,
-            timeout=600
-        )
-        assert result.returncode == 0
-
-    @pytest.mark.integration
-    def test_gaia_runnable_from_source(self, project_root):
-        """GAIA must be runnable from source."""
-        result = subprocess.run(
-            ["docker", "run", "--rm",
-             "-e", "LEMONADE_BASE_URL=http://test",
-             "gaia-dev:test", "gaia", "--version"],
             capture_output=True,
             text=True,
             timeout=600
@@ -196,3 +183,9 @@ class TestDockerfileDevOptimization:
         assert "iptables" in content
         assert "ipset" in content
         assert "iproute2" in content
+
+    def test_venv_activation_in_zshrc(self, dockerfile_dev_path):
+        """Dockerfile should add venv activation to .zshrc."""
+        content = dockerfile_dev_path.read_text()
+        assert 'source /home/gaia/.venv/bin/activate' in content
+        assert '.zshrc' in content

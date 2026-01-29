@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Activate virtual environment
+source /home/gaia/.venv/bin/activate
+
 # GAIA Development Container Entrypoint
 # Clones GAIA on first run, configures GitHub CLI and Claude Code
 
@@ -43,13 +46,6 @@ elif [ ! -d "$GAIA_DIR/.git" ]; then
         echo "Adding upstream remote: $UPSTREAM_URL"
         git remote add upstream "$UPSTREAM_URL"
     fi
-
-    echo "Installing GAIA dependencies..."
-    uv pip install -e ".[dev,mcp,eval,rag]"
-    if [ -f package.json ]; then
-        npm install
-    fi
-    echo "GAIA installation complete."
 else
     echo "GAIA source found at $GAIA_DIR"
 fi
@@ -76,14 +72,16 @@ echo ""
 echo "=== Ready ==="
 echo ""
 echo "GAIA source: ~/gaia"
-echo "GAIA version: $GAIA_VERSION"
+echo ""
+echo "First-time setup (run once):"
+echo "  cd ~/gaia"
+echo "  uv pip install -e '.[dev,mcp,eval,rag]'"
+echo "  npm install  # if using Electron apps"
 echo ""
 echo "Available commands:"
-echo "  claude        - Start Claude Code"
-echo "  gh            - GitHub CLI"
+echo "  claude         - Start Claude Code"
+echo "  gh             - GitHub CLI"
 echo "  gaia --version - Verify GAIA installation"
-echo ""
-echo "Access: docker exec -it <container> zsh"
 echo ""
 
 # Execute command passed to container
