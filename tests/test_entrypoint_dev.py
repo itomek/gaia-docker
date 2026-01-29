@@ -70,6 +70,14 @@ class TestEnvironmentConfiguration:
         assert 'SKIP_GAIA_CLONE' in content
         assert 'Skipping GAIA clone' in content
 
+    def test_installs_without_sudo(self, entrypoint_dev_path):
+        """Should install GAIA without sudo (using venv)."""
+        content = entrypoint_dev_path.read_text()
+        # Should use uv pip install without sudo and --system
+        assert 'uv pip install -e' in content
+        # Should NOT use sudo for pip install
+        assert 'sudo /home/gaia/.local/bin/uv pip install --system' not in content
+
 
 class TestLemonadeBaseUrlValidation:
     """Test LEMONADE_BASE_URL validation at runtime."""

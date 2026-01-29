@@ -38,26 +38,36 @@ uv run pytest tests/ -v
 
 ### Version Management
 
-The GAIA version is defined in the `VERSION` file in the repository root. This file contains a single line with the version number (e.g., `0.15.1`).
+Container versions are defined in the `VERSION.json` file in the repository root. This JSON file contains independent version numbers for each container type.
 
 ### Updating the Version
 
-1. **Update `VERSION` file** with the new GAIA version (e.g., `0.15.2`)
+1. **Update `VERSION.json` file** with the new version(s):
+   ```json
+   {
+     "gaia-linux": "0.15.2",
+     "gaia-dev": "1.0.0"
+   }
+   ```
 2. **Create a pull request** with the version change
 3. **CI will automatically**:
-   - Read the version from `VERSION` file
-   - Build the Docker image with the new GAIA version
-   - Tag the image with the version (e.g., `itomek/gaia-dev:0.15.2`)
+   - Read versions from `VERSION.json` using jq
+   - Build Docker images with their respective GAIA versions
+   - Tag images with versions (e.g., `itomek/gaia-linux:0.15.2`, `itomek/gaia-dev:1.0.0`)
    - Publish to Docker Hub
 
 ### Version File Format
 
-The `VERSION` file should contain a single line with the semantic version:
-```
-0.15.1
+The `VERSION.json` file should contain a JSON object with version numbers for each container:
+```json
+{
+  "gaia-linux": "0.15.1",
+  "gaia-dev": "1.0.0"
+}
 ```
 
-This version should match the PyPI `amd-gaia` package version you want to support.
+- **gaia-linux**: Should match the PyPI `amd-gaia` package version
+- **gaia-dev**: Independent versioning for development container features
 
 **Important**: We only publish specific version tags (no `latest` tag). Each version is explicitly tagged.
 
@@ -75,9 +85,9 @@ The image publishes automatically when:
 - You create a pull request that updates `VERSION`
 
 The CI workflow:
-1. Reads `VERSION` file
-2. Builds image with `GAIA_VERSION` build arg set to that version
-3. Tags image as `itomek/gaia-dev:<version>` (e.g., `itomek/gaia-dev:0.15.1`)
+1. Reads `VERSION.json` file using jq
+2. Builds images with `GAIA_VERSION` build args set to their respective versions
+3. Tags images as `itomek/gaia-linux:<version>` and `itomek/gaia-dev:<version>`
 4. Pushes to Docker Hub
 
 **Note**: We only publish specific version tags (no `latest` tag). Each version is explicitly tagged.

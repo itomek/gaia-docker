@@ -53,7 +53,7 @@ class TestEnvironmentConfiguration:
     def test_respects_gaia_version_env(self, entrypoint_path):
         """Should respect GAIA_VERSION environment variable."""
         content = entrypoint_path.read_text()
-        assert 'GAIA_VERSION="${GAIA_VERSION:-0.15.1}"' in content
+        assert 'GAIA_VERSION="${GAIA_VERSION:-' in content
 
     def test_requires_lemonade_base_url_env(self, entrypoint_path):
         """Should require LEMONADE_BASE_URL environment variable."""

@@ -26,7 +26,7 @@ tests/                 # pytest-based test suite
   test_entrypoint_dev.py    # Tests for gaia-dev entrypoint
   test_container.py         # Integration tests (marked with @pytest.mark.integration)
 
-VERSION                # Single source of truth for GAIA version
+VERSION.json           # Single source of truth for container versions
 ```
 
 ## Development Commands
@@ -57,7 +57,7 @@ uv run pytest tests/test_container.py -v -m integration
 docker build -f gaia-linux/Dockerfile -t itomek/gaia-linux:0.15.1 .
 
 # Build gaia-dev
-docker build -f gaia-dev/Dockerfile -t itomek/gaia-dev:0.15.1 .
+docker build -f gaia-dev/Dockerfile -t itomek/gaia-dev:1.0.0 .
 
 # Build with specific GAIA version
 docker build -f gaia-linux/Dockerfile --build-arg GAIA_VERSION=0.15.2 -t itomek/gaia-linux:0.15.2 .
@@ -79,7 +79,7 @@ docker run -dit \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   -e GITHUB_TOKEN=ghp_... \
   -e ANTHROPIC_API_KEY=sk-ant-... \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-dev:1.0.0
 
 # Connect to container
 docker exec -it gaia-linux-test zsh
@@ -101,10 +101,11 @@ docker exec -it gaia-linux-test zsh
 1. Same base as gaia-linux plus:
    - Claude Code installed globally via npm
    - Network isolation packages (iptables, ipset, iproute2) for sandboxing
+   - Virtual environment created at /home/gaia/.venv (owned by gaia user)
 2. **At runtime** (entrypoint.sh):
    - Validates LEMONADE_BASE_URL is set
    - Clones GAIA from GitHub (if not present in volume)
-   - Installs GAIA in editable mode with uv
+   - Installs GAIA in editable mode with uv (into virtual environment, no sudo required)
    - Configures GitHub CLI if GITHUB_TOKEN provided
    - Sets up ANTHROPIC_API_KEY for Claude Code
 
@@ -112,19 +113,31 @@ docker exec -it gaia-linux-test zsh
 - **gaia-linux** installs from PyPI for production use cases and reproducibility
 - **gaia-dev** clones from source for development and contributions
 - Both use uv for 10-100x faster Python package installation vs pip
-- VERSION file is single source of truth, read by CI/CD
-- No `latest` tag - all versions explicitly tagged (e.g., `0.15.1`)
+- **gaia-dev** uses virtual environment for package isolation and user-owned files (no sudo required)
+- VERSION.json file is single source of truth, read by CI/CD (independent versions per container)
+- No `latest` tag - all versions explicitly tagged
 
 ## Version Management
 
-The GAIA version is managed in the `VERSION` file at repository root. This file contains a single line with the version number matching PyPI's `amd-gaia` package.
+Container versions are managed in the `VERSION.json` file at repository root. This file contains independent version numbers for each container type.
+
+### VERSION.json Format
+```json
+{
+  "gaia-linux": "0.15.1",
+  "gaia-dev": "1.0.0"
+}
+```
+
+- **gaia-linux**: Matches PyPI's `amd-gaia` package version
+- **gaia-dev**: Independent versioning for development container features
 
 ### Updating Version
-1. Edit `VERSION` file (e.g., change `0.15.1` to `0.15.2`)
+1. Edit `VERSION.json` file (e.g., change `"gaia-linux": "0.15.1"` to `"0.15.2"`)
 2. Commit and push to main branch
 3. CI automatically:
-   - Reads VERSION file
-   - Builds both containers with GAIA_VERSION build arg
+   - Reads VERSION.json using jq
+   - Builds both containers with their respective GAIA_VERSION build args
    - Tags as `itomek/gaia-linux:<version>` and `itomek/gaia-dev:<version>`
    - Pushes to Docker Hub
    - Creates GitHub release

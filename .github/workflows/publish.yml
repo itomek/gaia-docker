@@ -69,9 +69,13 @@ jobs:
       - name: Read VERSION file
         id: version
         run: |
-          VERSION=$(cat VERSION | tr -d '[:space:]')
+          VERSION=$(jq -r '."gaia-linux"' VERSION.json)
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "ERROR: gaia-linux version not found in VERSION.json"
+            exit 1
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "GAIA version: $VERSION"
+          echo "gaia-linux version: $VERSION"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -149,9 +153,13 @@ jobs:
       - name: Read VERSION file
         id: version
         run: |
-          VERSION=$(cat VERSION | tr -d '[:space:]')
+          VERSION=$(jq -r '."gaia-dev"' VERSION.json)
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "ERROR: gaia-dev version not found in VERSION.json"
+            exit 1
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "GAIA version: $VERSION"
+          echo "gaia-dev version: $VERSION"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

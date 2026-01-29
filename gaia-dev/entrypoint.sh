@@ -45,7 +45,7 @@ elif [ ! -d "$GAIA_DIR/.git" ]; then
     fi
 
     echo "Installing GAIA dependencies..."
-    sudo /home/gaia/.local/bin/uv pip install --system -e ".[dev,mcp,eval,rag]"
+    uv pip install -e ".[dev,mcp,eval,rag]"
     if [ -f package.json ]; then
         npm install
     fi

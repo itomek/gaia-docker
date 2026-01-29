@@ -5,7 +5,7 @@
 FROM python:3.12-slim
 
 # GAIA version for reference (source is cloned from main branch)
-ARG GAIA_VERSION=0.15.1
+ARG GAIA_VERSION=1.0.0
 ENV GAIA_VERSION="${GAIA_VERSION}"
 
 # Timezone configuration
@@ -72,9 +72,16 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
 # Install uv (fast Python package installer)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
+# Create virtual environment owned by gaia user
+RUN /home/gaia/.local/bin/uv venv /home/gaia/.venv
+
 # Configure environment
 ENV SHELL=/bin/zsh
-ENV PATH="/home/gaia/.cargo/bin:/home/gaia/.local/bin:$PATH"
+ENV VIRTUAL_ENV=/home/gaia/.venv
+ENV PATH="/home/gaia/.venv/bin:/home/gaia/.cargo/bin:/home/gaia/.local/bin:$PATH"
+
+# Copy mode for mounted volumes
+ENV UV_LINK_MODE=copy
 
 # Create gaia directory for volume mount
 RUN mkdir -p /home/$USERNAME/gaia
