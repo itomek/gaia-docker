@@ -114,10 +114,26 @@ jobs:
 
   update-description:
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: [build-and-push, build-dev]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update version references in docs
+        run: |
+          LINUX_VERSION="${{ needs.build-and-push.outputs.version }}"
+          DEV_VERSION="${{ needs.build-dev.outputs.version }}"
+
+          # Update gaia-linux README
+          sed -i "s/gaia-linux:[0-9]\+\.[0-9]\+\.[0-9]\+/gaia-linux:${LINUX_VERSION}/g" docs/gaia-linux/README.md
+          sed -i "s/Current GAIA Version\*\*: [0-9]\+\.[0-9]\+\.[0-9]\+/Current GAIA Version**: ${LINUX_VERSION}/g" docs/gaia-linux/README.md
+          sed -i "s/\`GAIA_VERSION\` | No | \`[0-9]\+\.[0-9]\+\.[0-9]\+\`/\`GAIA_VERSION\` | No | \`${LINUX_VERSION}\`/g" docs/gaia-linux/README.md
+
+          # Update gaia-dev README
+          sed -i "s/gaia-dev:[0-9]\+\.[0-9]\+\.[0-9]\+/gaia-dev:${DEV_VERSION}/g" docs/gaia-dev/README.md
+
+          echo "Updated docs/gaia-linux/README.md with version ${LINUX_VERSION}"
+          echo "Updated docs/gaia-dev/README.md with version ${DEV_VERSION}"
 
       - name: Update gaia-linux Docker Hub description
         uses: peter-evans/dockerhub-description@v4
