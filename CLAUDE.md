@@ -54,7 +54,7 @@ uv run pytest tests/test_container.py -v -m integration
 
 ```bash
 # Build gaia-linux
-docker build -f gaia-linux/Dockerfile -t itomek/gaia-linux:0.15.1 .
+docker build -f gaia-linux/Dockerfile -t itomek/gaia-linux:0.15.3 .
 
 # Build gaia-dev
 docker build -f gaia-dev/Dockerfile -t itomek/gaia-dev:1.0.0 .
@@ -70,7 +70,7 @@ docker build -f gaia-linux/Dockerfile --build-arg GAIA_VERSION=0.15.2 -t itomek/
 docker run -dit \
   --name gaia-linux-test \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  itomek/gaia-linux:0.15.1
+  itomek/gaia-linux:0.15.3
 
 # gaia-dev
 docker run -dit \
@@ -124,7 +124,7 @@ Container versions are managed in the `VERSION.json` file at repository root. Th
 ### VERSION.json Format
 ```json
 {
-  "gaia-linux": "0.15.1",
+  "gaia-linux": "0.15.3",
   "gaia-dev": "1.0.0"
 }
 ```
@@ -157,7 +157,7 @@ Integration tests only run on pushes to main (not PRs) to save CI time.
 
 ### gaia-linux
 - `LEMONADE_BASE_URL` (required): Lemonade server API endpoint
-- `GAIA_VERSION` (default: 0.15.1): PyPI version to install
+- `GAIA_VERSION` (default: 0.15.3): PyPI version to install
 - `SKIP_INSTALL` (default: false): Skip package installation for faster restarts
 
 ### gaia-dev

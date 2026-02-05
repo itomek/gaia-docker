@@ -5,7 +5,7 @@
 FROM python:3.12-slim
 
 # GAIA version (set via build arg, defaults to 0.15.1)
-ARG GAIA_VERSION=0.15.1
+ARG GAIA_VERSION=0.15.3
 ENV GAIA_VERSION="${GAIA_VERSION}"
 
 # Timezone configuration

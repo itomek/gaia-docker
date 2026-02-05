@@ -15,7 +15,7 @@ if [ -z "$LEMONADE_BASE_URL" ]; then
 fi
 
 # Configuration from environment variables
-GAIA_VERSION="${GAIA_VERSION:-0.15.1}"
+GAIA_VERSION="${GAIA_VERSION:-0.15.3}"
 SKIP_INSTALL="${SKIP_INSTALL:-false}"
 
 echo "GAIA Version: $GAIA_VERSION"
