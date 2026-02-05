@@ -96,7 +96,6 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ steps.version.outputs.version }}
-            type=sha
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -196,7 +195,6 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ steps.version.outputs.version }}
-            type=sha
 
       - name: Build and push gaia-dev
         uses: docker/build-push-action@v5
