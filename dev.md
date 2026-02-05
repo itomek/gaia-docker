@@ -45,7 +45,7 @@ Container versions are defined in the `VERSION.json` file in the repository root
 1. **Update `VERSION.json` file** with the new version(s):
    ```json
    {
-     "gaia-linux": "0.15.3",
+     "gaia-linux": "0.15.3.1",
      "gaia-dev": "1.0.0"
    }
    ```
@@ -61,7 +61,7 @@ Container versions are defined in the `VERSION.json` file in the repository root
 The `VERSION.json` file should contain a JSON object with version numbers for each container:
 ```json
 {
-  "gaia-linux": "0.15.3",
+  "gaia-linux": "0.15.3.1",
   "gaia-dev": "1.0.0"
 }
 ```
@@ -106,7 +106,7 @@ The CI workflow:
 docker run -dit \
   --name gaia-linux-test \
   -e LEMONADE_BASE_URL=http://localhost:5000/api/v1 \
-  itomek/gaia-linux:0.15.3
+  itomek/gaia-linux:0.15.3.1
 
 docker logs -f gaia-linux-test
 # Wait for "Ready for development"

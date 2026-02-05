@@ -2,7 +2,7 @@
 
 Docker container for [AMD GAIA](https://github.com/amd/gaia) - Runtime edition.
 
-**Current GAIA Version**: 0.15.3
+**Current GAIA Version**: 0.15.3.1
 
 ## Overview
 
@@ -20,7 +20,7 @@ The `itomek/gaia-linux` container provides a ready-to-run AMD GAIA environment. 
 ### 1. Pull Image
 
 ```bash
-docker pull itomek/gaia-linux:0.15.3
+docker pull itomek/gaia-linux:0.15.3.1
 ```
 
 ### 2. Run Container
@@ -29,7 +29,7 @@ docker pull itomek/gaia-linux:0.15.3
 docker run -dit \
   --name gaia-linux \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  itomek/gaia-linux:0.15.3
+  itomek/gaia-linux:0.15.3.1
 ```
 
 ### 3. Connect
@@ -51,7 +51,7 @@ For complete GAIA usage documentation, see [AMD GAIA](https://github.com/AMD/GAI
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `LEMONADE_BASE_URL` | Yes | - | Lemonade server API endpoint (e.g., `https://your-server.com/api/v1`) |
-| `GAIA_VERSION` | No | `0.15.3` | PyPI version to install (override image default) |
+| `GAIA_VERSION` | No | `0.15.3.1` | PyPI version to install (override image default) |
 | `SKIP_INSTALL` | No | `false` | Skip package installation for faster restarts (use with care) |
 
 ## Architecture
@@ -73,7 +73,7 @@ The container follows this startup flow:
 You can extend this image in your own Dockerfile:
 
 ```dockerfile
-FROM itomek/gaia-linux:0.15.3
+FROM itomek/gaia-linux:0.15.3.1
 
 # Install additional tools
 RUN apt-get update && \
@@ -93,7 +93,7 @@ For more examples, see [Dockerfile usage guide](../dockerfile-usage.md).
 
 Images are tagged with the GAIA version they install from PyPI:
 
-- `itomek/gaia-linux:0.15.3` - Installs GAIA 0.15.3
+- `itomek/gaia-linux:0.15.3.1` - Installs GAIA 0.15.3.1
 - `itomek/gaia-linux:0.15.4` - Installs GAIA 0.15.4 (when released)
 - etc.
 
@@ -124,7 +124,7 @@ docker run -dit \
   --name gaia-linux \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   -e GAIA_VERSION=0.15.2 \
-  itomek/gaia-linux:0.15.3
+  itomek/gaia-linux:0.15.3.1
 ```
 
 ## Support

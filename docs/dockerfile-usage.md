@@ -5,7 +5,7 @@ You can use the `gaia-linux` image as a base in your own Dockerfile to extend or
 ## Basic Usage
 
 ```dockerfile
-FROM itomek/gaia-linux:0.15.3
+FROM itomek/gaia-linux:0.15.3.1
 
 # Your customizations here
 RUN echo "Custom setup"
@@ -25,7 +25,7 @@ The `gaia-linux` image installs GAIA from PyPI at container startup (not build t
 You can override the GAIA version by setting the `GAIA_VERSION` environment variable:
 
 ```dockerfile
-FROM itomek/gaia-linux:0.15.3
+FROM itomek/gaia-linux:0.15.3.1
 
 # Override to use a different GAIA version
 ENV GAIA_VERSION=0.15.2
@@ -35,7 +35,7 @@ ENV GAIA_VERSION=0.15.2
 
 Or at runtime:
 ```bash
-docker run -e GAIA_VERSION=0.15.2 itomek/gaia-linux:0.15.3
+docker run -e GAIA_VERSION=0.15.2 itomek/gaia-linux:0.15.3.1
 ```
 
 ## Required Environment Variables
@@ -43,7 +43,7 @@ docker run -e GAIA_VERSION=0.15.2 itomek/gaia-linux:0.15.3
 The container requires `LEMONADE_BASE_URL` to be set:
 
 ```dockerfile
-FROM itomek/gaia-linux:0.15.3
+FROM itomek/gaia-linux:0.15.3.1
 
 # Required: Set Lemonade server URL
 ENV LEMONADE_BASE_URL=https://your-server.com/api/v1
@@ -55,7 +55,7 @@ RUN your-custom-commands
 ## Example: Custom Production Setup
 
 ```dockerfile
-FROM itomek/gaia-linux:0.15.3
+FROM itomek/gaia-linux:0.15.3.1
 
 # Install additional tools
 RUN apt-get update && \
@@ -85,7 +85,7 @@ docker exec -it my-gaia-app zsh
 For faster restarts when GAIA is already installed (e.g., in a volume), set `SKIP_INSTALL=true`:
 
 ```bash
-docker run -e SKIP_INSTALL=true -e LEMONADE_BASE_URL=... itomek/gaia-linux:0.15.3
+docker run -e SKIP_INSTALL=true -e LEMONADE_BASE_URL=... itomek/gaia-linux:0.15.3.1
 ```
 
 ## Notes

@@ -17,7 +17,7 @@ class TestDockerfileBuildArgs:
         """gaia-linux Dockerfile should have default GAIA_VERSION."""
         content = dockerfile_path.read_text()
         # Look for ARG GAIA_VERSION=X.Y.Z
-        assert re.search(r'ARG GAIA_VERSION=\d+\.\d+\.\d+', content), \
+        assert re.search(r'ARG GAIA_VERSION=\d+\.\d+\.\d+(\.\d+)?', content), \
             "Dockerfile missing default version for GAIA_VERSION"
 
     def test_gaia_linux_dockerfile_exports_version_as_env(self, dockerfile_path):
@@ -72,7 +72,7 @@ class TestVersionEnvironmentVariable:
 
         version = result.stdout.strip()
         assert version, "GAIA_VERSION environment variable is empty"
-        assert re.match(r'\d+\.\d+\.\d+', version), \
+        assert re.match(r'\d+\.\d+\.\d+(\.\d+)?', version), \
             f"GAIA_VERSION '{version}' doesn't match semver format"
 
     @pytest.mark.integration
@@ -121,7 +121,7 @@ class TestVersionConsistency:
 
         # Read Dockerfile default
         content = dockerfile_path.read_text()
-        match = re.search(r'ARG GAIA_VERSION=(\d+\.\d+\.\d+)', content)
+        match = re.search(r'ARG GAIA_VERSION=(\d+\.\d+\.\d+(?:\.\d+)?)', content)
         assert match, "Could not find GAIA_VERSION default in Dockerfile"
         dockerfile_version = match.group(1)
 
@@ -140,7 +140,7 @@ class TestVersionConsistency:
 
         # Read Dockerfile default
         content = dockerfile_dev_path.read_text()
-        match = re.search(r'ARG GAIA_VERSION=(\d+\.\d+\.\d+)', content)
+        match = re.search(r'ARG GAIA_VERSION=(\d+\.\d+\.\d+(?:\.\d+)?)', content)
         assert match, "Could not find GAIA_VERSION default in gaia-dev Dockerfile"
         dockerfile_version = match.group(1)
 

@@ -124,12 +124,12 @@ jobs:
           DEV_VERSION="${{ needs.build-dev.outputs.version }}"
 
           # Update gaia-linux README
-          sed -i "s/gaia-linux:[0-9]\+\.[0-9]\+\.[0-9]\+/gaia-linux:${LINUX_VERSION}/g" docs/gaia-linux/README.md
-          sed -i "s/Current GAIA Version\*\*: [0-9]\+\.[0-9]\+\.[0-9]\+/Current GAIA Version**: ${LINUX_VERSION}/g" docs/gaia-linux/README.md
-          sed -i "s/\`GAIA_VERSION\` | No | \`[0-9]\+\.[0-9]\+\.[0-9]\+\`/\`GAIA_VERSION\` | No | \`${LINUX_VERSION}\`/g" docs/gaia-linux/README.md
+          sed -i "s/gaia-linux:[0-9]\+\.[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?/gaia-linux:${LINUX_VERSION}/g" docs/gaia-linux/README.md
+          sed -i "s/Current GAIA Version\*\*: [0-9]\+\.[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?/Current GAIA Version**: ${LINUX_VERSION}/g" docs/gaia-linux/README.md
+          sed -i "s/\`GAIA_VERSION\` | No | \`[0-9]\+\.[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?\`/\`GAIA_VERSION\` | No | \`${LINUX_VERSION}\`/g" docs/gaia-linux/README.md
 
           # Update gaia-dev README
-          sed -i "s/gaia-dev:[0-9]\+\.[0-9]\+\.[0-9]\+/gaia-dev:${DEV_VERSION}/g" docs/gaia-dev/README.md
+          sed -i "s/gaia-dev:[0-9]\+\.[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?/gaia-dev:${DEV_VERSION}/g" docs/gaia-dev/README.md
 
           echo "Updated docs/gaia-linux/README.md with version ${LINUX_VERSION}"
           echo "Updated docs/gaia-dev/README.md with version ${DEV_VERSION}"

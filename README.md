@@ -2,7 +2,7 @@
 
 Docker containers for [AMD GAIA](https://github.com/amd/gaia) - the AI framework for building and deploying intelligent agents.
 
-**Current Versions**: gaia-linux: 0.15.3 | gaia-dev: 1.1.0
+**Current Versions**: gaia-linux: 0.15.3.1 | gaia-dev: 1.1.0
 
 ## Overview
 
@@ -25,11 +25,11 @@ Choose the container that matches your needs:
 Use `gaia-linux` for running GAIA applications:
 
 ```bash
-docker pull itomek/gaia-linux:0.15.3
+docker pull itomek/gaia-linux:0.15.3.1
 docker run -dit \
   --name gaia-linux \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  itomek/gaia-linux:0.15.3
+  itomek/gaia-linux:0.15.3.1
 ```
 
 See [gaia-linux documentation](docs/gaia-linux/README.md) for complete usage.
@@ -97,7 +97,7 @@ Container versions are managed in the `VERSION.json` file with independent versi
 
 ```bash
 # Pull specific version
-docker pull itomek/gaia-linux:0.15.3
+docker pull itomek/gaia-linux:0.15.3.1
 docker pull itomek/gaia-dev:1.1.0
 
 # No "latest" tag - ensures reproducibility
@@ -127,7 +127,7 @@ uv run pytest tests/test_dockerfile.py -v
 
 ```bash
 # Build gaia-linux
-docker build -f gaia-linux/Dockerfile -t itomek/gaia-linux:0.15.3 .
+docker build -f gaia-linux/Dockerfile -t itomek/gaia-linux:0.15.3.1 .
 
 # Build gaia-dev
 docker build -f gaia-dev/Dockerfile -t itomek/gaia-dev:1.1.0 .

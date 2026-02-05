@@ -5,7 +5,7 @@
 FROM ubuntu:24.04
 
 # GAIA version (set via build arg, defaults to 0.15.3)
-ARG GAIA_VERSION=0.15.3
+ARG GAIA_VERSION=0.15.3.1
 ENV GAIA_VERSION="${GAIA_VERSION}"
 
 # Timezone configuration

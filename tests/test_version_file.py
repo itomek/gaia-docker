@@ -64,7 +64,7 @@ class TestVersionFileFormat:
         for key in ["gaia-linux", "gaia-dev"]:
             version = data[key]
             parts = version.split(".")
-            assert len(parts) == 3, f"{key} version '{version}' must have 3 parts (MAJOR.MINOR.PATCH)"
+            assert len(parts) >= 3, f"{key} version '{version}' must have at least 3 parts (MAJOR.MINOR.PATCH[.HOTFIX])"
             for part in parts:
                 assert part.isdigit(), f"{key} version '{version}' part '{part}' must be numeric"
 
