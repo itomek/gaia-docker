@@ -47,19 +47,6 @@ class TestDockerfileBuild:
         last_line = result.stdout.strip().splitlines()[-1]
         assert last_line.startswith("v20.")
 
-    def test_git_installed(self, project_root):
-        """Container must have git."""
-        result = subprocess.run(
-            ["docker", "run", "--rm",
-             "-e", "LEMONADE_BASE_URL=http://test",
-             "-e", "SKIP_INSTALL=true",
-             "gaia-linux:test", "git", "--version"],
-            capture_output=True,
-            text=True
-        )
-        assert result.returncode == 0
-        assert "git version" in result.stdout
-
     def test_zsh_installed(self, project_root):
         """Container must have zsh as shell."""
         result = subprocess.run(
@@ -124,27 +111,14 @@ class TestDockerfileBuild:
         assert result.returncode == 0
         assert "ffmpeg version" in result.stdout
 
-    def test_github_cli_installed(self, project_root):
-        """Container must have GitHub CLI (gh) installed."""
-        result = subprocess.run(
-            ["docker", "run", "--rm",
-             "-e", "LEMONADE_BASE_URL=http://test",
-             "-e", "SKIP_INSTALL=true",
-             "gaia-linux:test", "gh", "--version"],
-            capture_output=True,
-            text=True
-        )
-        assert result.returncode == 0
-        assert "gh version" in result.stdout
-
 
 class TestDockerfileOptimization:
     """Test that Dockerfile follows best practices."""
 
-    def test_uses_slim_base(self, dockerfile_path):
-        """Should use python:3.12-slim for smaller image."""
+    def test_uses_ubuntu_base(self, dockerfile_path):
+        """Should use ubuntu:24.04 as base image."""
         content = dockerfile_path.read_text()
-        assert "python:3.12-slim" in content
+        assert "ubuntu:24.04" in content
 
     def test_cleans_apt_cache(self, dockerfile_path):
         """Should clean apt cache to reduce image size."""

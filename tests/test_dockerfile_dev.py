@@ -161,10 +161,15 @@ class TestGaiaSourceCode:
 class TestDockerfileDevOptimization:
     """Test that Dockerfile.dev follows best practices."""
 
-    def test_uses_slim_base(self, dockerfile_dev_path):
-        """Should use python:3.12-slim for smaller image."""
+    def test_uses_ubuntu_base(self, dockerfile_dev_path):
+        """Should use ubuntu:24.04 as base image."""
         content = dockerfile_dev_path.read_text()
-        assert "python:3.12-slim" in content
+        assert "ubuntu:24.04" in content
+
+    def test_uses_uv_managed_python(self, dockerfile_dev_path):
+        """Should use uv to install Python instead of system packages."""
+        content = dockerfile_dev_path.read_text()
+        assert "uv python install" in content
 
     def test_cleans_apt_cache(self, dockerfile_dev_path):
         """Should clean apt cache to reduce image size."""

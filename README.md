@@ -2,7 +2,7 @@
 
 Docker containers for [AMD GAIA](https://github.com/amd/gaia) - the AI framework for building and deploying intelligent agents.
 
-**Current Versions**: gaia-linux: 0.15.3 | gaia-dev: 1.0.0
+**Current Versions**: gaia-linux: 0.15.3 | gaia-dev: 1.1.0
 
 ## Overview
 
@@ -39,14 +39,14 @@ See [gaia-linux documentation](docs/gaia-linux/README.md) for complete usage.
 Use `gaia-dev` for developing GAIA or contributing to the project:
 
 ```bash
-docker pull itomek/gaia-dev:1.0.0
+docker pull itomek/gaia-dev:1.1.0
 docker run -dit \
   --name gaia-dev \
   -v gaia-src:/home/gaia/gaia \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   -e GAIA_REPO_URL=https://github.com/amd/gaia.git \
   -e GITHUB_TOKEN=ghp_your_token \
-  itomek/gaia-dev:1.0.0
+  itomek/gaia-dev:1.1.0
 ```
 
 See [gaia-dev documentation](docs/gaia-dev/README.md) for complete usage.
@@ -57,14 +57,14 @@ See [gaia-dev documentation](docs/gaia-dev/README.md) for complete usage.
 - **Fast installation**: Uses `uv` package manager for 10-100x faster installs than pip
 - **Complete isolation**: Each container is fully self-contained
 - **Multi-instance support**: Run multiple GAIA instances on the same host
-- **Production-ready**: Built on official Python images with security best practices
+- **Production-ready**: Built on Ubuntu 24.04 LTS with security best practices
 
 ## Container Comparison
 
 ### gaia-linux
 - **Best for**: Running GAIA applications, production deployments
 - **GAIA source**: Installed from PyPI at startup
-- **Includes**: Python 3.12, Node.js 20, system dependencies
+- **Includes**: Ubuntu 24.04, Python 3.12, Node.js 20, system dependencies
 - **Size**: Smaller (~1-2 GB)
 - **Startup**: 2-3 minutes first run, 30 seconds cached
 
@@ -98,7 +98,7 @@ Container versions are managed in the `VERSION.json` file with independent versi
 ```bash
 # Pull specific version
 docker pull itomek/gaia-linux:0.15.3
-docker pull itomek/gaia-dev:1.0.0
+docker pull itomek/gaia-dev:1.1.0
 
 # No "latest" tag - ensures reproducibility
 ```
@@ -130,7 +130,7 @@ uv run pytest tests/test_dockerfile.py -v
 docker build -f gaia-linux/Dockerfile -t itomek/gaia-linux:0.15.3 .
 
 # Build gaia-dev
-docker build -f gaia-dev/Dockerfile -t itomek/gaia-dev:1.0.0 .
+docker build -f gaia-dev/Dockerfile -t itomek/gaia-dev:1.1.0 .
 ```
 
 See [CLAUDE.md](CLAUDE.md) for complete development documentation.

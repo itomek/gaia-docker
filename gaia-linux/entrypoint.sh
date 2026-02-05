@@ -24,7 +24,7 @@ echo "GAIA Version: $GAIA_VERSION"
 if [ "$SKIP_INSTALL" != "true" ]; then
     echo "Installing GAIA version $GAIA_VERSION from PyPI (using uv for speed)..."
     echo "(First run: ~2-3 minutes, subsequent runs: ~30 seconds)"
-    sudo "$HOME/.local/bin/uv" pip install --system "amd-gaia[dev,mcp,eval,rag]==${GAIA_VERSION}"
+    sudo "$HOME/.local/bin/uv" pip install --system --break-system-packages "amd-gaia[dev,mcp,eval,rag]==${GAIA_VERSION}"
     echo "Installation completed."
 else
     echo "Skipping installation (SKIP_INSTALL=true)"

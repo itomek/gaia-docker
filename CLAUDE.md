@@ -88,8 +88,8 @@ docker exec -it gaia-linux-test zsh
 ## Architecture
 
 ### gaia-linux Container Flow
-1. Base: Python 3.12 slim with Node.js 20
-2. System dependencies installed (git, gh, jq, audio libraries, build tools)
+1. Base: Ubuntu 24.04 LTS with system Python 3.12 and Node.js 20
+2. System dependencies installed (git, audio libraries, build tools)
 3. User `gaia` created with passwordless sudo
 4. uv (fast Python package installer) installed
 5. **At runtime** (entrypoint.sh):
@@ -98,7 +98,7 @@ docker exec -it gaia-linux-test zsh
    - First run: ~2-3 minutes, cached runs: ~30 seconds
 
 ### gaia-dev Container Flow
-1. Same base as gaia-linux plus:
+1. Base: Ubuntu 24.04 LTS with uv-managed Python 3.12 and Node.js 20
    - Claude Code installed globally via npm
    - Network isolation packages (iptables, ipset, iproute2) for sandboxing
    - Virtual environment created at /home/gaia/.venv (owned by gaia user)

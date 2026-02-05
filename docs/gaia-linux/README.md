@@ -10,7 +10,7 @@ The `itomek/gaia-linux` container provides a ready-to-run AMD GAIA environment. 
 
 **Key Features:**
 - GAIA installed from PyPI at startup
-- Python 3.12 + Node.js 20 environment
+- Ubuntu 24.04 LTS with Python 3.12 + Node.js 20
 - User `gaia` with passwordless sudo
 - Fast installation with `uv` package manager (~2-3 minutes first run, ~30 seconds cached)
 - No `latest` tag - all versions explicitly tagged
@@ -58,8 +58,8 @@ For complete GAIA usage documentation, see [AMD GAIA](https://github.com/AMD/GAI
 
 The container follows this startup flow:
 
-1. Base image: Python 3.12 slim + Node.js 20
-2. System dependencies: git, gh CLI, jq, audio libraries, build tools
+1. Base image: Ubuntu 24.04 LTS with Python 3.12 + Node.js 20
+2. System dependencies: git, audio libraries, build tools
 3. User `gaia` created with passwordless sudo
 4. `uv` (fast Python package installer) installed globally
 5. **At runtime** (entrypoint.sh):

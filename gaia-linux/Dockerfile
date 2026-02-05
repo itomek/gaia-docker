@@ -2,9 +2,9 @@
 # Provides isolated Python 3.12 environment for GAIA
 # GAIA is installed from PyPI at runtime based on version
 
-FROM python:3.12-slim
+FROM ubuntu:24.04
 
-# GAIA version (set via build arg, defaults to 0.15.1)
+# GAIA version (set via build arg, defaults to 0.15.3)
 ARG GAIA_VERSION=0.15.3
 ENV GAIA_VERSION="${GAIA_VERSION}"
 
@@ -12,17 +12,24 @@ ENV GAIA_VERSION="${GAIA_VERSION}"
 ARG TZ=America/Los_Angeles
 ENV TZ="$TZ"
 
-# Install system dependencies
-# Combined into single layer for efficiency
+# Prevent apt prompts during build
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Install Python 3.12 (required for system-wide pip install)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Core tools
-    ca-certificates curl gnupg git procps sudo \
-    # Shell and utilities
-    fzf zsh man-db unzip nano vim wget less \
-    # GitHub CLI
-    gh \
-    # JSON processor
-    jq \
+    python3 python3-pip python3-venv python3-dev \
+    && ln -sf /usr/bin/python3 /usr/bin/python \
+    && ln -sf /usr/bin/pip3 /usr/bin/pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install minimal runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Core runtime
+    ca-certificates curl sudo procps \
+    # Shell (needed for entrypoint and user interaction)
+    zsh \
+    # Git (required for oh-my-zsh installation)
+    git \
     # Build tools (for Python packages with C extensions)
     build-essential \
     # Audio processing for GAIA voice features
@@ -32,7 +39,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Node.js 20 (required for GAIA Electron apps)
 ARG NODE_MAJOR=20
-RUN mkdir -p /etc/apt/keyrings && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gnupg && \
+    mkdir -p /etc/apt/keyrings && \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | \
     gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" \
@@ -62,7 +71,7 @@ WORKDIR /source
 
 # Install oh-my-zsh with useful plugins
 ARG ZSH_IN_DOCKER_VERSION=1.2.0
-RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh)" -- \
+RUN sh -c "$(curl -fsSL https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh)" -- \
     -p git -p fzf -p python -x
 
 # Install uv (fast Python package installer)
