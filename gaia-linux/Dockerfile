@@ -4,8 +4,8 @@
 
 FROM ubuntu:24.04
 
-# GAIA version (set via build arg, defaults to 0.15.3)
-ARG GAIA_VERSION=0.15.3.1
+# GAIA version - optional, if not set the entrypoint installs latest from PyPI
+ARG GAIA_VERSION
 ENV GAIA_VERSION="${GAIA_VERSION}"
 
 # Timezone configuration

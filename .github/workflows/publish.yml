@@ -77,19 +77,34 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "gaia-linux version: $VERSION"
 
+      - name: Check if image tag already exists
+        id: check_exists
+        run: |
+          if docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }} > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Image tag ${{ steps.version.outputs.version }} already exists, skipping build."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Image tag ${{ steps.version.outputs.version }} not found, will build."
+          fi
+
       - name: Set up QEMU
+        if: steps.check_exists.outputs.exists != 'true'
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
+        if: steps.check_exists.outputs.exists != 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
+        if: steps.check_exists.outputs.exists != 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract metadata
+        if: steps.check_exists.outputs.exists != 'true'
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -98,6 +113,7 @@ jobs:
             type=raw,value=${{ steps.version.outputs.version }}
 
       - name: Build and push
+        if: steps.check_exists.outputs.exists != 'true'
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -106,8 +122,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            GAIA_VERSION=${{ steps.version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -123,10 +137,9 @@ jobs:
           LINUX_VERSION="${{ needs.build-and-push.outputs.version }}"
           DEV_VERSION="${{ needs.build-dev.outputs.version }}"
 
-          # Update gaia-linux README
+          # Update gaia-linux README image tags
           sed -i "s/gaia-linux:[0-9]\+\.[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?/gaia-linux:${LINUX_VERSION}/g" docs/gaia-linux/README.md
-          sed -i "s/Current GAIA Version\*\*: [0-9]\+\.[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?/Current GAIA Version**: ${LINUX_VERSION}/g" docs/gaia-linux/README.md
-          sed -i "s/\`GAIA_VERSION\` | No | \`[0-9]\+\.[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?\`/\`GAIA_VERSION\` | No | \`${LINUX_VERSION}\`/g" docs/gaia-linux/README.md
+          sed -i "s/Current Image Version\*\*: [0-9]\+\.[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?/Current Image Version**: ${LINUX_VERSION}/g" docs/gaia-linux/README.md
 
           # Update gaia-dev README
           sed -i "s/gaia-dev:[0-9]\+\.[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?/gaia-dev:${DEV_VERSION}/g" docs/gaia-dev/README.md
@@ -176,19 +189,34 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "gaia-dev version: $VERSION"
 
+      - name: Check if image tag already exists
+        id: check_exists
+        run: |
+          if docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }} > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Image tag ${{ steps.version.outputs.version }} already exists, skipping build."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Image tag ${{ steps.version.outputs.version }} not found, will build."
+          fi
+
       - name: Set up QEMU
+        if: steps.check_exists.outputs.exists != 'true'
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
+        if: steps.check_exists.outputs.exists != 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
+        if: steps.check_exists.outputs.exists != 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract metadata
+        if: steps.check_exists.outputs.exists != 'true'
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -197,6 +225,7 @@ jobs:
             type=raw,value=${{ steps.version.outputs.version }}
 
       - name: Build and push gaia-dev
+        if: steps.check_exists.outputs.exists != 'true'
         uses: docker/build-push-action@v5
         with:
           context: .

@@ -15,17 +15,39 @@ if [ -z "$LEMONADE_BASE_URL" ]; then
 fi
 
 # Configuration from environment variables
-GAIA_VERSION="${GAIA_VERSION:-0.15.3.1}"
 SKIP_INSTALL="${SKIP_INSTALL:-false}"
 
-echo "GAIA Version: $GAIA_VERSION"
-
-# Install GAIA from PyPI with specific version
+# Install GAIA from PyPI
 if [ "$SKIP_INSTALL" != "true" ]; then
-    echo "Installing GAIA version $GAIA_VERSION from PyPI (using uv for speed)..."
-    echo "(First run: ~2-3 minutes, subsequent runs: ~30 seconds)"
-    sudo "$HOME/.local/bin/uv" pip install --system --break-system-packages "amd-gaia[dev,mcp,eval,rag]==${GAIA_VERSION}"
-    echo "Installation completed."
+    if [ -n "$GAIA_VERSION" ]; then
+        echo "Installing GAIA version $GAIA_VERSION from PyPI..."
+        if ! sudo "$HOME/.local/bin/uv" pip install --system --break-system-packages "amd-gaia[dev,mcp,eval,rag]==${GAIA_VERSION}"; then
+            echo ""
+            echo "ERROR: Failed to install amd-gaia==${GAIA_VERSION}"
+            echo "Possible causes:"
+            echo "  - Version '${GAIA_VERSION}' does not exist on PyPI"
+            echo "  - PyPI is unreachable (check network connectivity)"
+            echo "  - Package index is temporarily unavailable"
+            echo "Check available versions: pip index versions amd-gaia"
+            exit 1
+        fi
+    else
+        echo "No GAIA_VERSION specified, installing latest from PyPI..."
+        if ! sudo "$HOME/.local/bin/uv" pip install --system --break-system-packages "amd-gaia[dev,mcp,eval,rag]"; then
+            echo ""
+            echo "ERROR: Failed to install amd-gaia from PyPI"
+            echo "Possible causes:"
+            echo "  - PyPI is unreachable (check network connectivity)"
+            echo "  - Package index is temporarily unavailable"
+            exit 1
+        fi
+    fi
+
+    # Log the actual installed version
+    INSTALLED_VERSION=$(sudo "$HOME/.local/bin/uv" pip show amd-gaia 2>/dev/null | grep "^Version:" | awk '{print $2}')
+    if [ -n "$INSTALLED_VERSION" ]; then
+        echo "Installed GAIA version: $INSTALLED_VERSION"
+    fi
 else
     echo "Skipping installation (SKIP_INSTALL=true)"
 fi
@@ -36,7 +58,7 @@ echo "Lemonade base URL: $LEMONADE_BASE_URL"
 echo ""
 echo "=== Ready ==="
 echo ""
-echo "GAIA version: $GAIA_VERSION"
+echo "GAIA version: ${GAIA_VERSION:-latest}"
 echo "Access: docker exec -it <container> zsh"
 echo ""
 

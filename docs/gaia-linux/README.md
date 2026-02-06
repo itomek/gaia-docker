@@ -2,14 +2,14 @@
 
 Docker container for [AMD GAIA](https://github.com/amd/gaia) - Runtime edition.
 
-**Current GAIA Version**: 0.15.3.2
+**Current Image Version**: 1.0.0
 
 ## Overview
 
-The `itomek/gaia-linux` container provides a ready-to-run AMD GAIA environment. GAIA is installed from PyPI at container startup, ensuring you always get a known version.
+The `itomek/gaia-linux` container provides a ready-to-run AMD GAIA environment. GAIA is installed from PyPI at container startup — either the latest version or a specific version you choose.
 
 **Key Features:**
-- GAIA installed from PyPI at startup
+- GAIA installed from PyPI at startup (latest or pinned version)
 - Ubuntu 24.04 LTS with Python 3.12 + Node.js 20
 - User `gaia` with passwordless sudo
 - Fast installation with `uv` package manager (~2-3 minutes first run, ~30 seconds cached)
@@ -20,16 +20,24 @@ The `itomek/gaia-linux` container provides a ready-to-run AMD GAIA environment. 
 ### 1. Pull Image
 
 ```bash
-docker pull itomek/gaia-linux:0.15.3.2
+docker pull itomek/gaia-linux:1.0.0
 ```
 
 ### 2. Run Container
 
 ```bash
+# Installs latest GAIA from PyPI
 docker run -dit \
   --name gaia-linux \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  itomek/gaia-linux:0.15.3.2
+  itomek/gaia-linux:1.0.0
+
+# Or pin a specific GAIA version
+docker run -dit \
+  --name gaia-linux \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
+  -e GAIA_VERSION=0.15.3.2 \
+  itomek/gaia-linux:1.0.0
 ```
 
 ### 3. Connect
@@ -51,7 +59,7 @@ For complete GAIA usage documentation, see [AMD GAIA](https://github.com/AMD/GAI
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `LEMONADE_BASE_URL` | Yes | - | Lemonade server API endpoint (e.g., `https://your-server.com/api/v1`) |
-| `GAIA_VERSION` | No | `0.15.3.2` | PyPI version to install (override image default) |
+| `GAIA_VERSION` | No | *(latest)* | PyPI version to install. If omitted, installs latest from PyPI. |
 | `SKIP_INSTALL` | No | `false` | Skip package installation for faster restarts (use with care) |
 
 ## Architecture
@@ -64,7 +72,8 @@ The container follows this startup flow:
 4. `uv` (fast Python package installer) installed globally
 5. **At runtime** (entrypoint.sh):
    - Validates `LEMONADE_BASE_URL` is set
-   - Installs `amd-gaia[dev,mcp,eval,rag]==<version>` from PyPI using uv
+   - If `GAIA_VERSION` is set: installs `amd-gaia[dev,mcp,eval,rag]==<version>` from PyPI
+   - If `GAIA_VERSION` is not set: installs latest `amd-gaia[dev,mcp,eval,rag]` from PyPI
    - First run: ~2-3 minutes for download and installation
    - Subsequent runs: ~30 seconds (cached dependencies)
 
@@ -73,7 +82,7 @@ The container follows this startup flow:
 You can extend this image in your own Dockerfile:
 
 ```dockerfile
-FROM itomek/gaia-linux:0.15.3.2
+FROM itomek/gaia-linux:1.0.0
 
 # Install additional tools
 RUN apt-get update && \
@@ -91,11 +100,15 @@ For more examples, see [Dockerfile usage guide](../dockerfile-usage.md).
 
 ## Versioning
 
-Images are tagged with the GAIA version they install from PyPI:
+Image versions track the **base environment** (Ubuntu + Python + Node.js + system deps), not the GAIA PyPI package. A new GAIA release does not require a new Docker image — just set `GAIA_VERSION` at runtime:
 
-- `itomek/gaia-linux:0.15.3.2` - Installs GAIA 0.15.3.2
-- `itomek/gaia-linux:0.15.4` - Installs GAIA 0.15.4 (when released)
-- etc.
+```bash
+# Use latest GAIA (default)
+docker run -dit -e LEMONADE_BASE_URL=... itomek/gaia-linux:1.0.0
+
+# Pin specific GAIA version
+docker run -dit -e LEMONADE_BASE_URL=... -e GAIA_VERSION=0.16.0 itomek/gaia-linux:1.0.0
+```
 
 We do not publish a `latest` tag to ensure reproducibility.
 
@@ -115,16 +128,16 @@ You should see validation and installation progress.
 
 First run downloads all dependencies. Subsequent runs use Docker layer caching and are much faster. To skip installation entirely (if dependencies are already cached), set `SKIP_INSTALL=true`.
 
-### Version mismatch
+### Pin a specific GAIA version
 
-To install a different GAIA version than the image default:
+If you need a specific GAIA version for compatibility, set it at runtime:
 
 ```bash
 docker run -dit \
   --name gaia-linux \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  -e GAIA_VERSION=0.15.2 \
-  itomek/gaia-linux:0.15.3.2
+  -e GAIA_VERSION=0.15.3.1 \
+  itomek/gaia-linux:1.0.0
 ```
 
 ## Support

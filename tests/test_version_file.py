@@ -151,7 +151,7 @@ class TestVersionFileMalformedHandling:
     def test_detect_invalid_json(self, tmp_path):
         """Should detect when VERSION.json contains invalid JSON."""
         invalid_json_file = tmp_path / "VERSION.json"
-        invalid_json_file.write_text('{"gaia-linux": "0.15.1"')  # Missing closing brace
+        invalid_json_file.write_text('{"gaia-linux": "1.0.0"')  # Missing closing brace
 
         result = subprocess.run(
             ["jq", "-r", '."gaia-linux"', str(invalid_json_file)],
@@ -197,10 +197,10 @@ class TestVersionFileBackwardsCompatibility:
         """VERSION.json should support adding new container types."""
         extended_version_file = tmp_path / "VERSION.json"
         extended_version_file.write_text(json.dumps({
-            "gaia-linux": "0.15.1",
-            "gaia-dev": "1.0.0",
-            "gaia-windows": "0.15.1",
-            "gaia-arm": "0.15.1"
+            "gaia-linux": "1.0.0",
+            "gaia-dev": "1.1.0",
+            "gaia-windows": "1.0.0",
+            "gaia-arm": "1.0.0"
         }))
 
         # Should still be able to read existing keys
@@ -210,7 +210,7 @@ class TestVersionFileBackwardsCompatibility:
             text=True,
             check=True
         )
-        assert result.stdout.strip() == "0.15.1"
+        assert result.stdout.strip() == "1.0.0"
 
         result = subprocess.run(
             ["jq", "-r", '."gaia-windows"', str(extended_version_file)],
@@ -218,4 +218,4 @@ class TestVersionFileBackwardsCompatibility:
             text=True,
             check=True
         )
-        assert result.stdout.strip() == "0.15.1"
+        assert result.stdout.strip() == "1.0.0"

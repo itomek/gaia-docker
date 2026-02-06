@@ -188,32 +188,37 @@ class TestVersionReading:
 class TestBuildArguments:
     """Test GAIA_VERSION build argument passing."""
 
-    def test_build_and_push_passes_gaia_version_arg(self, project_root):
-        """build-and-push should pass GAIA_VERSION build argument."""
+    def test_build_and_push_does_not_pass_gaia_version_arg(self, project_root):
+        """build-and-push should NOT pass GAIA_VERSION build argument (decoupled)."""
         workflow_file = project_root / ".github" / "workflows" / "publish.yml"
-        content = workflow_file.read_text()
+        with open(workflow_file) as f:
+            workflow = yaml.safe_load(f)
 
-        # Look for build-args with GAIA_VERSION
-        assert 'build-args' in content, "Workflow missing build-args"
-        assert 'GAIA_VERSION' in content, "Workflow doesn't pass GAIA_VERSION build arg"
+        build_job = workflow["jobs"]["build-and-push"]
+        steps = build_job.get("steps", [])
+        for step in steps:
+            if step.get("uses", "").startswith("docker/build-push-action"):
+                build_args = step.get("with", {}).get("build-args", "")
+                assert "GAIA_VERSION" not in build_args, \
+                    "build-and-push should not pass GAIA_VERSION (image versioning is decoupled)"
+                break
 
     def test_build_dev_passes_gaia_version_arg(self, project_root):
-        """build-dev should pass GAIA_VERSION build argument."""
+        """build-dev should still pass GAIA_VERSION build argument."""
         workflow_file = project_root / ".github" / "workflows" / "publish.yml"
-        content = workflow_file.read_text()
+        with open(workflow_file) as f:
+            workflow = yaml.safe_load(f)
 
-        # Count occurrences - should appear in both jobs
-        gaia_version_count = content.count('GAIA_VERSION')
-        assert gaia_version_count >= 2, "GAIA_VERSION should appear in multiple jobs"
-
-    def test_build_arg_uses_version_output(self, project_root):
-        """Build args should use version from VERSION.json reading step."""
-        workflow_file = project_root / ".github" / "workflows" / "publish.yml"
-        content = workflow_file.read_text()
-
-        # Should reference the version output
-        assert 'steps.version.outputs.version' in content, \
-            "Build args don't use version from version reading step"
+        build_dev_job = workflow["jobs"]["build-dev"]
+        steps = build_dev_job.get("steps", [])
+        found = False
+        for step in steps:
+            if step.get("uses", "").startswith("docker/build-push-action"):
+                build_args = step.get("with", {}).get("build-args", "")
+                if "GAIA_VERSION" in build_args:
+                    found = True
+                break
+        assert found, "build-dev should pass GAIA_VERSION build arg"
 
 
 class TestDockerOperations:
@@ -241,6 +246,40 @@ class TestDockerOperations:
 
         assert 'cache-from: type=gha' in content, "Workflow missing cache-from configuration"
         assert 'cache-to: type=gha' in content, "Workflow missing cache-to configuration"
+
+    def test_build_and_push_has_skip_if_exists(self, project_root):
+        """build-and-push should skip building if the tag already exists on Docker Hub."""
+        workflow_file = project_root / ".github" / "workflows" / "publish.yml"
+        content = workflow_file.read_text()
+
+        assert 'docker manifest inspect' in content, \
+            "Workflow should check if image tag already exists before building"
+
+    def test_build_dev_has_skip_if_exists(self, project_root):
+        """build-dev should skip building if the tag already exists on Docker Hub."""
+        workflow_file = project_root / ".github" / "workflows" / "publish.yml"
+        with open(workflow_file) as f:
+            workflow = yaml.safe_load(f)
+
+        build_dev_job = workflow["jobs"]["build-dev"]
+        steps = build_dev_job.get("steps", [])
+
+        # Find the check_exists step
+        has_manifest_check = any(
+            "docker manifest inspect" in step.get("run", "")
+            for step in steps
+        )
+        assert has_manifest_check, \
+            "build-dev should check if image tag already exists before building"
+
+        # Verify build step is conditional on check_exists
+        has_conditional_build = any(
+            "check_exists" in step.get("if", "")
+            for step in steps
+            if step.get("uses", "").startswith("docker/build-push-action")
+        )
+        assert has_conditional_build, \
+            "build-dev build step should be conditional on check_exists"
 
 
 class TestReleaseCreation:
@@ -274,7 +313,7 @@ class TestReleaseCreation:
         assert 'gh release create' in content, "Workflow doesn't use 'gh release create'"
 
     def test_release_tag_has_v_prefix(self, project_root):
-        """Release tags should have 'v' prefix (e.g., v0.15.1)."""
+        """Release tags should have 'v' prefix (e.g., v1.0.0)."""
         workflow_file = project_root / ".github" / "workflows" / "publish.yml"
         content = workflow_file.read_text()
 
