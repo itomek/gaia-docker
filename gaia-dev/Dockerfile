@@ -41,7 +41,7 @@ RUN mkdir -p /etc/apt/keyrings && \
     apt-get update && apt-get install -y gh && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 20 (required for GAIA Electron apps and Claude Code)
+# Install Node.js 20 (required for GAIA Electron apps)
 ARG NODE_MAJOR=20
 RUN mkdir -p /etc/apt/keyrings && \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | \
@@ -52,9 +52,6 @@ RUN mkdir -p /etc/apt/keyrings && \
     apt-get install -y nodejs && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-# Install Claude Code globally via npm
-RUN npm install -g @anthropic-ai/claude-code
 
 # Create gaia user with passwordless sudo
 ARG USERNAME=gaia
@@ -82,6 +79,9 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
 # Ensure virtual environment is activated in interactive shells
 RUN echo 'source /home/gaia/.venv/bin/activate' >> /home/gaia/.zshrc
 
+# Install Claude Code using native installer (user-owned, supports auto-updates)
+RUN curl -fsSL https://claude.ai/install.sh | bash
+
 # Install uv (fast Python package installer)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
@@ -98,6 +98,8 @@ RUN ln -sf /home/gaia/.venv/bin/python /home/gaia/.local/bin/python
 ENV SHELL=/bin/zsh
 ENV VIRTUAL_ENV=/home/gaia/.venv
 ENV PATH="/home/gaia/.venv/bin:/home/gaia/.cargo/bin:/home/gaia/.local/bin:$PATH"
+
+ENV DEVCONTAINER=true
 
 # Copy mode for mounted volumes
 ENV UV_LINK_MODE=copy

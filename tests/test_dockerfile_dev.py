@@ -189,6 +189,17 @@ class TestDockerfileDevOptimization:
         assert "ipset" in content
         assert "iproute2" in content
 
+    def test_has_devcontainer_env(self, dockerfile_dev_path):
+        """Should set DEVCONTAINER=true environment variable."""
+        content = dockerfile_dev_path.read_text()
+        assert "DEVCONTAINER=true" in content
+
+    def test_uses_native_claude_installer(self, dockerfile_dev_path):
+        """Should use native Claude Code installer, not npm."""
+        content = dockerfile_dev_path.read_text()
+        assert "claude.ai/install.sh" in content
+        assert "npm install -g @anthropic-ai/claude-code" not in content
+
     def test_venv_activation_in_zshrc(self, dockerfile_dev_path):
         """Dockerfile should add venv activation to .zshrc."""
         content = dockerfile_dev_path.read_text()

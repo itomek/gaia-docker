@@ -2,7 +2,7 @@
 
 Docker container for [AMD GAIA](https://github.com/amd/gaia) - Development edition with Claude Code.
 
-**Current Container Version**: 1.1.0
+**Current Container Version**: 1.2.0
 
 ## Overview
 
@@ -23,7 +23,7 @@ The `itomek/gaia-dev` container provides a complete AMD GAIA development environ
 ### 1. Pull Image
 
 ```bash
-docker pull itomek/gaia-dev:1.1.0
+docker pull itomek/gaia-dev:1.2.0
 ```
 
 ### 2. Run Container
@@ -36,7 +36,7 @@ docker run -dit \
   -e GAIA_REPO_URL=https://github.com/amd/gaia.git \
   -e GITHUB_TOKEN=ghp_your_token \
   -e ANTHROPIC_API_KEY=sk-ant-your_key \
-  itomek/gaia-dev:1.1.0
+  itomek/gaia-dev:1.2.0
 ```
 
 **Note**: Using a named volume (`gaia-src:/home/gaia/gaia`) persists the GAIA source code between container restarts, avoiding re-cloning.
@@ -81,7 +81,7 @@ The container follows this startup flow:
 2. System dependencies: git, gh CLI, jq, audio libraries, build tools, network isolation tools
 3. User `gaia` created with passwordless sudo
 4. `uv` (fast Python package installer) installed globally
-5. Claude Code CLI installed globally via npm
+5. Claude Code CLI installed via native installer (user-owned, auto-updates enabled)
 6. **At runtime** (entrypoint.sh):
    - Validates `LEMONADE_BASE_URL` is set
    - Clones GAIA from `GAIA_REPO_URL` (if not present in volume)
@@ -146,7 +146,7 @@ gh issue list
 You can extend this image for your own development environment:
 
 ```dockerfile
-FROM itomek/gaia-dev:1.1.0
+FROM itomek/gaia-dev:1.2.0
 
 # Install additional development tools
 RUN apt-get update && \
@@ -169,11 +169,12 @@ For more examples, see [Dockerfile usage guide](../dockerfile-usage.md).
 
 The gaia-dev container uses independent versioning from the GAIA package:
 
-- Container versions (e.g., `itomek/gaia-dev:1.1.0`) indicate development environment features
+- Container versions (e.g., `itomek/gaia-dev:1.2.0`) indicate development environment features
 - The actual GAIA version installed depends on what you clone from `GAIA_REPO_URL`
 - All versions are explicitly tagged (no `latest` tag for reproducibility)
 
 Version history:
+- `1.2.0` - Native Claude Code installer (user-owned, auto-updates enabled), DEVCONTAINER env
 - `1.1.0` - Migrated to Ubuntu 24.04 LTS base image, uv-managed Python
 - `1.0.0` - Development container with Claude Code, virtual environment, and editable GAIA install
 
@@ -189,7 +190,7 @@ docker run -dit \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   -e GAIA_REPO_URL=https://github.com/amd/gaia.git \
   -e GITHUB_TOKEN=ghp_your_token \
-  itomek/gaia-dev:1.1.0
+  itomek/gaia-dev:1.2.0
 
 # Stop and remove container
 docker stop gaia-dev && docker rm gaia-dev
@@ -202,7 +203,7 @@ docker run -dit \
   -e GAIA_REPO_URL=https://github.com/amd/gaia.git \
   -e GITHUB_TOKEN=ghp_your_token \
   -e SKIP_GAIA_CLONE=true \
-  itomek/gaia-dev:1.1.0
+  itomek/gaia-dev:1.2.0
 ```
 
 ## Troubleshooting
@@ -236,7 +237,7 @@ docker run -dit \
   -v gaia-src:/home/gaia/gaia \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   -e SKIP_GAIA_CLONE=true \
-  itomek/gaia-dev:1.1.0
+  itomek/gaia-dev:1.2.0
 ```
 
 ## Support

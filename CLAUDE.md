@@ -104,7 +104,7 @@ docker exec -it gaia-linux-test zsh
 
 ### gaia-dev Container Flow
 1. Base: Ubuntu 24.04 LTS with uv-managed Python 3.12 and Node.js 20
-   - Claude Code installed globally via npm
+   - Claude Code installed via native installer (user-owned, auto-updates enabled)
    - Network isolation packages (iptables, ipset, iproute2) for sandboxing
    - Virtual environment created at /home/gaia/.venv (owned by gaia user)
 2. **At runtime** (entrypoint.sh):
@@ -131,7 +131,7 @@ VERSION.json contains **Docker image versions only**. These versions track the b
 ```json
 {
   "gaia-linux": "1.0.0",
-  "gaia-dev": "1.1.0"
+  "gaia-dev": "1.2.0"
 }
 ```
 
