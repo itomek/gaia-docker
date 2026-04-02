@@ -18,7 +18,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install system dependencies (NO Python - will be managed by uv)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # Core tools
-    ca-certificates curl gnupg git procps sudo \
+    ca-certificates curl gnupg git procps sudo file \
     # Shell and utilities
     fzf zsh man-db unzip nano vim wget less \
     # JSON processor
@@ -71,6 +71,15 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 USER $USERNAME
 WORKDIR /home/$USERNAME
 
+# Install Homebrew
+ENV HOMEBREW_NO_ANALYTICS=1
+ENV HOMEBREW_NO_AUTO_UPDATE=1
+ENV HOMEBREW_NO_INSTALL_CLEANUP=1
+RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/6d5e2670d07961e7985d2079a2f0a484420f3c38/install.sh)"
+
+# Configure Vim
+COPY --chown=gaia:gaia .vimrc /home/gaia/.vimrc
+
 # Install oh-my-zsh with useful plugins
 ARG ZSH_IN_DOCKER_VERSION=1.2.0
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh)" -- \
@@ -96,8 +105,12 @@ RUN ln -sf /home/gaia/.venv/bin/python /home/gaia/.local/bin/python
 
 # Configure environment
 ENV SHELL=/bin/zsh
+ENV TERM=xterm-256color
+ENV COLORTERM=truecolor
+ENV EDITOR=vim
+ENV VISUAL=vim
 ENV VIRTUAL_ENV=/home/gaia/.venv
-ENV PATH="/home/gaia/.venv/bin:/home/gaia/.cargo/bin:/home/gaia/.local/bin:$PATH"
+ENV PATH="/home/gaia/.venv/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/gaia/.cargo/bin:/home/gaia/.local/bin:$PATH"
 
 ENV DEVCONTAINER=true
 

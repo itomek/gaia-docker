@@ -116,6 +116,31 @@ class TestDockerfileDevBuild:
         last_line = result.stdout.strip().splitlines()[-1]
         assert last_line == "gaia"
 
+    def test_homebrew_installed(self, project_root):
+        """Container must have Homebrew on PATH."""
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "gaia-dev:test", "brew", "--version"],
+            capture_output=True,
+            text=True
+        )
+        assert result.returncode == 0
+        assert "Homebrew" in result.stdout
+
+    def test_vimrc_owned_by_gaia(self, project_root):
+        """Container must have .vimrc owned by gaia user."""
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "gaia-dev:test", "stat", "-c", "%U:%G", "/home/gaia/.vimrc"],
+            capture_output=True,
+            text=True
+        )
+        assert result.returncode == 0
+        last_line = result.stdout.strip().splitlines()[-1]
+        assert last_line == "gaia:gaia"
+
 
 class TestGaiaSourceCode:
     """Test GAIA source code cloning and dependencies."""

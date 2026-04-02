@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install minimal runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # Core runtime
-    ca-certificates curl sudo procps \
+    ca-certificates curl sudo procps file \
     # Shell (needed for entrypoint and user interaction)
     zsh \
     # Git (required for oh-my-zsh installation)
@@ -34,6 +34,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     # Audio processing for GAIA voice features
     libportaudio2 portaudio19-dev ffmpeg \
+    # Editor
+    vim \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -69,6 +71,15 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 USER $USERNAME
 WORKDIR /source
 
+# Install Homebrew
+ENV HOMEBREW_NO_ANALYTICS=1
+ENV HOMEBREW_NO_AUTO_UPDATE=1
+ENV HOMEBREW_NO_INSTALL_CLEANUP=1
+RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/6d5e2670d07961e7985d2079a2f0a484420f3c38/install.sh)"
+
+# Configure Vim
+COPY --chown=gaia:gaia .vimrc /home/gaia/.vimrc
+
 # Install oh-my-zsh with useful plugins
 ARG ZSH_IN_DOCKER_VERSION=1.2.0
 RUN sh -c "$(curl -fsSL https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh)" -- \
@@ -79,7 +90,11 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Configure environment
 ENV SHELL=/bin/zsh
-ENV PATH="/home/gaia/.cargo/bin:/home/gaia/.local/bin:$PATH"
+ENV TERM=xterm-256color
+ENV COLORTERM=truecolor
+ENV EDITOR=vim
+ENV VISUAL=vim
+ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/gaia/.cargo/bin:/home/gaia/.local/bin:$PATH"
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["zsh"]
