@@ -26,7 +26,7 @@ tests/                 # pytest-based test suite
   test_entrypoint_dev.py    # Tests for gaia-dev entrypoint
   test_container.py         # Integration tests (marked with @pytest.mark.integration)
 
-VERSION                # Single source of truth for GAIA version
+VERSION.json           # Single source of truth for Docker image versions
 ```
 
 ## Development Commands
@@ -53,24 +53,28 @@ uv run pytest tests/test_container.py -v -m integration
 ### Building Images
 
 ```bash
-# Build gaia-linux
-docker build -f gaia-linux/Dockerfile -t itomek/gaia-linux:0.15.1 .
+# Build gaia-linux (version from VERSION.json)
+docker build -f gaia-linux/Dockerfile -t itomek/gaia-linux:$(jq -r '."gaia-linux"' VERSION.json) .
 
-# Build gaia-dev
-docker build -f gaia-dev/Dockerfile -t itomek/gaia-dev:0.15.1 .
-
-# Build with specific GAIA version
-docker build -f gaia-linux/Dockerfile --build-arg GAIA_VERSION=0.15.2 -t itomek/gaia-linux:0.15.2 .
+# Build gaia-dev (version from VERSION.json)
+docker build -f gaia-dev/Dockerfile -t itomek/gaia-dev:$(jq -r '."gaia-dev"' VERSION.json) .
 ```
 
 ### Running Containers Locally
 
 ```bash
-# gaia-linux
+# gaia-linux — installs latest GAIA from PyPI
 docker run -dit \
   --name gaia-linux-test \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  itomek/gaia-linux:0.15.1
+  itomek/gaia-linux:$(jq -r '."gaia-linux"' VERSION.json)
+
+# gaia-linux — pin specific GAIA version
+docker run -dit \
+  --name gaia-linux-test \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
+  -e GAIA_VERSION=0.15.3.2 \
+  itomek/gaia-linux:$(jq -r '."gaia-linux"' VERSION.json)
 
 # gaia-dev
 docker run -dit \
@@ -79,7 +83,7 @@ docker run -dit \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   -e GITHUB_TOKEN=ghp_... \
   -e ANTHROPIC_API_KEY=sk-ant-... \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-dev:$(jq -r '."gaia-dev"' VERSION.json)
 
 # Connect to container
 docker exec -it gaia-linux-test zsh
@@ -88,23 +92,25 @@ docker exec -it gaia-linux-test zsh
 ## Architecture
 
 ### gaia-linux Container Flow
-1. Base: Python 3.12 slim with Node.js 20
-2. System dependencies installed (git, gh, jq, audio libraries, build tools)
+1. Base: Ubuntu 24.04 LTS with system Python 3.12 and Node.js 20
+2. System dependencies installed (git, audio libraries, build tools)
 3. User `gaia` created with passwordless sudo
 4. uv (fast Python package installer) installed
 5. **At runtime** (entrypoint.sh):
    - Validates LEMONADE_BASE_URL is set
-   - Installs `amd-gaia[dev,mcp,eval,rag]==<version>` from PyPI using uv
+   - If `GAIA_VERSION` is set: installs `amd-gaia[dev,mcp,eval,rag]==<version>` from PyPI
+   - If `GAIA_VERSION` is not set: installs latest `amd-gaia[dev,mcp,eval,rag]` from PyPI
    - First run: ~2-3 minutes, cached runs: ~30 seconds
 
 ### gaia-dev Container Flow
-1. Same base as gaia-linux plus:
-   - Claude Code installed globally via npm
+1. Base: Ubuntu 24.04 LTS with uv-managed Python 3.12 and Node.js 20
+   - Claude Code installed via native installer (user-owned, auto-updates enabled)
    - Network isolation packages (iptables, ipset, iproute2) for sandboxing
+   - Virtual environment created at /home/gaia/.venv (owned by gaia user)
 2. **At runtime** (entrypoint.sh):
    - Validates LEMONADE_BASE_URL is set
    - Clones GAIA from GitHub (if not present in volume)
-   - Installs GAIA in editable mode with uv
+   - Installs GAIA in editable mode with uv (into virtual environment, no sudo required)
    - Configures GitHub CLI if GITHUB_TOKEN provided
    - Sets up ANTHROPIC_API_KEY for Claude Code
 
@@ -112,20 +118,35 @@ docker exec -it gaia-linux-test zsh
 - **gaia-linux** installs from PyPI for production use cases and reproducibility
 - **gaia-dev** clones from source for development and contributions
 - Both use uv for 10-100x faster Python package installation vs pip
-- VERSION file is single source of truth, read by CI/CD
-- No `latest` tag - all versions explicitly tagged (e.g., `0.15.1`)
+- **gaia-dev** uses virtual environment for package isolation and user-owned files (no sudo required)
+- VERSION.json is single source of truth for **Docker image versions** (independent from GAIA PyPI versions)
+- Docker image versioning is decoupled from GAIA versioning — GAIA version is chosen at runtime
+- No `latest` tag - all versions explicitly tagged
 
 ## Version Management
 
-The GAIA version is managed in the `VERSION` file at repository root. This file contains a single line with the version number matching PyPI's `amd-gaia` package.
+VERSION.json contains **Docker image versions only**. These versions track the base environment (Ubuntu + Python + Node.js + system deps), not the GAIA PyPI package.
+
+### VERSION.json Format
+```json
+{
+  "gaia-linux": "1.0.0",
+  "gaia-dev": "1.2.0"
+}
+```
+
+- **gaia-linux**: Docker image version (base environment). Bump when Dockerfile changes.
+- **gaia-dev**: Docker image version (base environment + dev tools). Bump when Dockerfile changes.
+
+GAIA version is specified at container runtime via `GAIA_VERSION` env var (or omitted for latest).
 
 ### Updating Version
-1. Edit `VERSION` file (e.g., change `0.15.1` to `0.15.2`)
+1. Edit `VERSION.json` file — only bump when the Docker image itself changes
 2. Commit and push to main branch
 3. CI automatically:
-   - Reads VERSION file
-   - Builds both containers with GAIA_VERSION build arg
-   - Tags as `itomek/gaia-linux:<version>` and `itomek/gaia-dev:<version>`
+   - Reads VERSION.json using jq
+   - Skips build if the image tag already exists on Docker Hub
+   - Builds and tags as `itomek/gaia-linux:<version>` and `itomek/gaia-dev:<version>`
    - Pushes to Docker Hub
    - Creates GitHub release
 
@@ -133,7 +154,7 @@ The GAIA version is managed in the `VERSION` file at repository root. This file 
 
 GitHub Actions workflow (.github/workflows/publish.yml):
 1. **test** job: Runs pytest on all test files
-2. **build-and-push** job: Builds and publishes gaia-linux
+2. **build-and-push** job: Builds and publishes gaia-linux (skips if tag exists)
 3. **build-dev** job: Builds and publishes gaia-dev
 4. **update-description** job: Updates Docker Hub README
 5. **create-release** job: Creates GitHub release with version tag
@@ -144,7 +165,7 @@ Integration tests only run on pushes to main (not PRs) to save CI time.
 
 ### gaia-linux
 - `LEMONADE_BASE_URL` (required): Lemonade server API endpoint
-- `GAIA_VERSION` (default: 0.15.1): PyPI version to install
+- `GAIA_VERSION` (optional): PyPI version to install. If omitted, installs latest from PyPI.
 - `SKIP_INSTALL` (default: false): Skip package installation for faster restarts
 
 ### gaia-dev

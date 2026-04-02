@@ -2,24 +2,25 @@
 # Includes GAIA source code, Claude Code, and development tools pre-installed
 # GAIA runs from source at /home/gaia/gaia
 
-FROM python:3.12-slim
+FROM ubuntu:24.04
 
 # GAIA version for reference (source is cloned from main branch)
-ARG GAIA_VERSION=0.15.1
+ARG GAIA_VERSION=1.1.0
 ENV GAIA_VERSION="${GAIA_VERSION}"
 
 # Timezone configuration
 ARG TZ=America/Los_Angeles
 ENV TZ="$TZ"
 
-# Install system dependencies
+# Prevent apt prompts during build
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies (NO Python - will be managed by uv)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # Core tools
-    ca-certificates curl gnupg git procps sudo \
+    ca-certificates curl gnupg git procps sudo file \
     # Shell and utilities
     fzf zsh man-db unzip nano vim wget less \
-    # GitHub CLI
-    gh \
     # JSON processor
     jq \
     # Build tools (for Python packages with C extensions)
@@ -27,11 +28,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Audio processing for GAIA voice features
     libportaudio2 portaudio19-dev ffmpeg \
     # Claude Code sandbox requirements (network isolation)
-    iptables ipset iproute2 dnsutils aggregate \
+    iptables ipset iproute2 bind9-dnsutils aggregate \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 20 (required for GAIA Electron apps and Claude Code)
+# Install GitHub CLI from official repository
+RUN mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
+    gpg --dearmor -o /etc/apt/keyrings/githubcli-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+    > /etc/apt/sources.list.d/github-cli.list && \
+    apt-get update && apt-get install -y gh && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 20 (required for GAIA Electron apps)
 ARG NODE_MAJOR=20
 RUN mkdir -p /etc/apt/keyrings && \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | \
@@ -42,9 +52,6 @@ RUN mkdir -p /etc/apt/keyrings && \
     apt-get install -y nodejs && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-# Install Claude Code globally via npm
-RUN npm install -g @anthropic-ai/claude-code
 
 # Create gaia user with passwordless sudo
 ARG USERNAME=gaia
@@ -64,17 +71,51 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 USER $USERNAME
 WORKDIR /home/$USERNAME
 
+# Install Homebrew
+ENV HOMEBREW_NO_ANALYTICS=1
+ENV HOMEBREW_NO_AUTO_UPDATE=1
+ENV HOMEBREW_NO_INSTALL_CLEANUP=1
+RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/6d5e2670d07961e7985d2079a2f0a484420f3c38/install.sh)"
+
+# Configure Vim
+COPY --chown=gaia:gaia .vimrc /home/gaia/.vimrc
+
 # Install oh-my-zsh with useful plugins
 ARG ZSH_IN_DOCKER_VERSION=1.2.0
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh)" -- \
     -p git -p fzf -p python -x
 
+# Ensure virtual environment is activated in interactive shells
+RUN echo 'source /home/gaia/.venv/bin/activate' >> /home/gaia/.zshrc
+
+# Install Claude Code using native installer (user-owned, supports auto-updates)
+RUN curl -fsSL https://claude.ai/install.sh | bash
+
 # Install uv (fast Python package installer)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
+# Install Python 3.12 via uv (no system Python needed)
+RUN /home/gaia/.local/bin/uv python install 3.12
+
+# Create virtual environment using uv-managed Python
+RUN /home/gaia/.local/bin/uv venv --python 3.12 /home/gaia/.venv
+
+# Create python symlink for CLI convenience
+RUN ln -sf /home/gaia/.venv/bin/python /home/gaia/.local/bin/python
+
 # Configure environment
 ENV SHELL=/bin/zsh
-ENV PATH="/home/gaia/.cargo/bin:/home/gaia/.local/bin:$PATH"
+ENV TERM=xterm-256color
+ENV COLORTERM=truecolor
+ENV EDITOR=vim
+ENV VISUAL=vim
+ENV VIRTUAL_ENV=/home/gaia/.venv
+ENV PATH="/home/gaia/.venv/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/gaia/.cargo/bin:/home/gaia/.local/bin:$PATH"
+
+ENV DEVCONTAINER=true
+
+# Copy mode for mounted volumes
+ENV UV_LINK_MODE=copy
 
 # Create gaia directory for volume mount
 RUN mkdir -p /home/$USERNAME/gaia

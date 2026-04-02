@@ -37,6 +37,18 @@ def entrypoint_dev_path(project_root):
     return project_root / "gaia-dev" / "entrypoint.sh"
 
 
+@pytest.fixture(scope="session")
+def workflow_file(project_root):
+    """Return path to GitHub Actions workflow file."""
+    return project_root / ".github" / "workflows" / "publish.yml"
+
+
+@pytest.fixture(scope="session")
+def version_file(project_root):
+    """Return path to VERSION.json file."""
+    return project_root / "VERSION.json"
+
+
 @pytest.fixture(scope="module")
 def gaia_container(project_root):
     """Build and start GAIA container for integration tests."""

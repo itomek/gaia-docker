@@ -2,7 +2,7 @@
 
 Docker containers for [AMD GAIA](https://github.com/amd/gaia) - the AI framework for building and deploying intelligent agents.
 
-**Current GAIA Version**: 0.15.1
+**Current Versions**: gaia-linux: 1.0.0 | gaia-dev: 1.1.0
 
 ## Overview
 
@@ -25,11 +25,20 @@ Choose the container that matches your needs:
 Use `gaia-linux` for running GAIA applications:
 
 ```bash
-docker pull itomek/gaia-linux:0.15.1
+docker pull itomek/gaia-linux:1.0.0
+
+# Installs latest GAIA from PyPI automatically
 docker run -dit \
   --name gaia-linux \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
-  itomek/gaia-linux:0.15.1
+  itomek/gaia-linux:1.0.0
+
+# Or pin a specific GAIA version
+docker run -dit \
+  --name gaia-linux \
+  -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
+  -e GAIA_VERSION=0.15.3.2 \
+  itomek/gaia-linux:1.0.0
 ```
 
 See [gaia-linux documentation](docs/gaia-linux/README.md) for complete usage.
@@ -39,32 +48,32 @@ See [gaia-linux documentation](docs/gaia-linux/README.md) for complete usage.
 Use `gaia-dev` for developing GAIA or contributing to the project:
 
 ```bash
-docker pull itomek/gaia-dev:0.15.1
+docker pull itomek/gaia-dev:1.1.0
 docker run -dit \
   --name gaia-dev \
   -v gaia-src:/home/gaia/gaia \
   -e LEMONADE_BASE_URL=https://your-server.com/api/v1 \
   -e GAIA_REPO_URL=https://github.com/amd/gaia.git \
   -e GITHUB_TOKEN=ghp_your_token \
-  itomek/gaia-dev:0.15.1
+  itomek/gaia-dev:1.1.0
 ```
 
 See [gaia-dev documentation](docs/gaia-dev/README.md) for complete usage.
 
 ## Key Features
 
-- **Version-pinned**: All images tagged with specific GAIA versions (no `latest` tag)
+- **Decoupled versioning**: Image versions track the base environment; GAIA version is chosen at runtime
 - **Fast installation**: Uses `uv` package manager for 10-100x faster installs than pip
 - **Complete isolation**: Each container is fully self-contained
 - **Multi-instance support**: Run multiple GAIA instances on the same host
-- **Production-ready**: Built on official Python images with security best practices
+- **Production-ready**: Built on Ubuntu 24.04 LTS with security best practices
 
 ## Container Comparison
 
 ### gaia-linux
 - **Best for**: Running GAIA applications, production deployments
-- **GAIA source**: Installed from PyPI at startup
-- **Includes**: Python 3.12, Node.js 20, system dependencies
+- **GAIA source**: Installed from PyPI at startup (latest or pinned version)
+- **Includes**: Ubuntu 24.04, Python 3.12, Node.js 20, system dependencies
 - **Size**: Smaller (~1-2 GB)
 - **Startup**: 2-3 minutes first run, 30 seconds cached
 
@@ -93,18 +102,22 @@ See [gaia-dev documentation](docs/gaia-dev/README.md) for complete usage.
 
 ## Version Management
 
-The GAIA version is managed in the `VERSION` file. All containers are tagged with explicit version numbers:
+Docker image versions are managed in `VERSION.json`. These versions track the **base environment** (Ubuntu + Python + Node.js + system deps), not the GAIA PyPI package version. GAIA is installed at runtime, so a new GAIA release does not require a new Docker image.
 
 ```bash
-# Pull specific version
-docker pull itomek/gaia-linux:0.15.1
-docker pull itomek/gaia-dev:0.15.1
+# Pull image (version tracks base environment)
+docker pull itomek/gaia-linux:1.0.0
+docker pull itomek/gaia-dev:1.1.0
 
-# No "latest" tag - ensures reproducibility
+# Use latest GAIA (default)
+docker run -dit -e LEMONADE_BASE_URL=... itomek/gaia-linux:1.0.0
+
+# Pin specific GAIA version
+docker run -dit -e LEMONADE_BASE_URL=... -e GAIA_VERSION=0.15.3.2 itomek/gaia-linux:1.0.0
 ```
 
-When a new GAIA version is released:
-1. Update `VERSION` file
+When the base environment changes:
+1. Update `VERSION.json`
 2. CI automatically builds and publishes new images
 3. GitHub release created with version tag
 
@@ -127,10 +140,10 @@ uv run pytest tests/test_dockerfile.py -v
 
 ```bash
 # Build gaia-linux
-docker build -f gaia-linux/Dockerfile -t itomek/gaia-linux:0.15.1 .
+docker build -f gaia-linux/Dockerfile -t itomek/gaia-linux:1.0.0 .
 
 # Build gaia-dev
-docker build -f gaia-dev/Dockerfile -t itomek/gaia-dev:0.15.1 .
+docker build -f gaia-dev/Dockerfile -t itomek/gaia-dev:1.1.0 .
 ```
 
 See [CLAUDE.md](CLAUDE.md) for complete development documentation.

@@ -73,9 +73,13 @@ uv run pytest tests/test_container.py -v --tb=short -m integration  # main only
 
 **Steps:**
 
-1. **Read VERSION file:**
+1. **Read VERSION.json file:**
    ```yaml
-   VERSION=$(cat VERSION | tr -d '[:space:]')
+   VERSION=$(jq -r '."gaia-linux"' VERSION.json)
+   if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+     echo "ERROR: gaia-linux version not found in VERSION.json"
+     exit 1
+   fi
    echo "version=$VERSION" >> $GITHUB_OUTPUT
    ```
 
@@ -178,19 +182,21 @@ permissions:
 
 ## Version Management
 
-**VERSION file:**
-- Plain text file containing version number (e.g., "0.15.1")
-- Must match available GAIA PyPI versions
+**VERSION.json file:**
+- JSON file containing independent versions for each container
+- Format: `{"gaia-linux": "0.15.1", "gaia-dev": "1.0.0"}`
+- **gaia-linux** must match available GAIA PyPI versions
+- **gaia-dev** uses independent versioning
 - Drives all versioning: Docker tags, releases, build args
-- Whitespace is stripped when read
+- Parsed using jq: `jq -r '."gaia-linux"' VERSION.json`
 
 **Version flow:**
-1. Update VERSION file
+1. Update VERSION.json file
 2. Push to main
-3. Workflow reads VERSION
-4. Builds Docker image with GAIA_VERSION build arg
-5. Tags image with version
-6. Creates GitHub release with `v{VERSION}` tag
+3. Workflow reads VERSION.json with jq (separate for each container)
+4. Builds Docker images with respective GAIA_VERSION build args
+5. Tags images with their versions
+6. Creates GitHub releases with `v{VERSION}` tags
 
 ## Multi-Architecture Support
 
@@ -246,9 +252,10 @@ gh run watch <run-id>
 
 ## Troubleshooting
 
-**Build fails on VERSION read:**
-- Ensure VERSION file exists and contains valid version
-- Check for trailing whitespace or newlines
+**Build fails on VERSION.json read:**
+- Ensure VERSION.json file exists and contains valid JSON
+- Validate format: `jq . VERSION.json`
+- Check that both container keys exist: "gaia-linux" and "gaia-dev"
 
 **Docker Hub push fails:**
 - Verify DOCKERHUB_TOKEN is access token, not password
@@ -266,8 +273,9 @@ gh run watch <run-id>
 
 ## Best Practices for This Project
 
-1. **Version updates:** Always update VERSION file before pushing to main
-2. **Test locally:** Run tests locally before pushing: `uv run pytest`
-3. **Cache management:** Cache automatically managed, no manual intervention needed
-4. **Release notes:** Auto-generated, manual editing via GitHub UI if needed
-5. **Secrets rotation:** Update Docker Hub token annually for security
+1. **Version updates:** Always update VERSION.json file before pushing to main
+2. **JSON validation:** Validate JSON format before committing: `jq . VERSION.json`
+3. **Test locally:** Run tests locally before pushing: `uv run pytest`
+4. **Cache management:** Cache automatically managed, no manual intervention needed
+5. **Release notes:** Auto-generated, manual editing via GitHub UI if needed
+6. **Secrets rotation:** Update Docker Hub token annually for security

@@ -4,7 +4,7 @@ You are a Docker specialist with deep knowledge of the gaia-docker project's con
 
 ## Project Context
 
-This project provides a Docker container for GAIA (AMD's AI agent platform), built on Python 3.12-slim with runtime installation of GAIA from PyPI.
+This project provides a Docker container for GAIA (AMD's AI agent platform), built on Ubuntu 24.04 LTS with runtime installation of GAIA from PyPI.
 
 ## Key Files
 
@@ -34,10 +34,10 @@ ENV TZ="$TZ"
 
 ### Layer Organization
 
-1. **Base layer:** python:3.12-slim
+1. **Base layer:** ubuntu:24.04
 2. **System dependencies:** Combined into single layer for efficiency
-   - Core tools: ca-certificates, curl, gnupg, git, gh, jq
-   - Shell: zsh, fzf, oh-my-zsh
+   - Core tools: ca-certificates, curl, git
+   - Shell: zsh, oh-my-zsh
    - Build tools: build-essential (for C extension compilation)
    - Audio: libportaudio2, portaudio19-dev, ffmpeg (for GAIA voice features)
 3. **Node.js installation:** Version 20 from NodeSource

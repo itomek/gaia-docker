@@ -116,6 +116,31 @@ class TestDockerfileDevBuild:
         last_line = result.stdout.strip().splitlines()[-1]
         assert last_line == "gaia"
 
+    def test_homebrew_installed(self, project_root):
+        """Container must have Homebrew on PATH."""
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "gaia-dev:test", "brew", "--version"],
+            capture_output=True,
+            text=True
+        )
+        assert result.returncode == 0
+        assert "Homebrew" in result.stdout
+
+    def test_vimrc_owned_by_gaia(self, project_root):
+        """Container must have .vimrc owned by gaia user."""
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://test",
+             "gaia-dev:test", "stat", "-c", "%U:%G", "/home/gaia/.vimrc"],
+            capture_output=True,
+            text=True
+        )
+        assert result.returncode == 0
+        last_line = result.stdout.strip().splitlines()[-1]
+        assert last_line == "gaia:gaia"
+
 
 class TestGaiaSourceCode:
     """Test GAIA source code cloning and dependencies."""
@@ -138,11 +163,11 @@ class TestGaiaSourceCode:
         assert "git clone" in content
         assert "github.com/amd/gaia" in content
 
-    def test_entrypoint_installs_deps(self, entrypoint_dev_path):
-        """Entrypoint should install GAIA dependencies."""
+    def test_entrypoint_shows_setup_instructions(self, entrypoint_dev_path):
+        """Entrypoint should show setup instructions (not auto-install)."""
         content = entrypoint_dev_path.read_text()
+        assert "First-time setup" in content
         assert "uv pip install" in content
-        assert "[dev,mcp,eval,rag]" in content
 
     @pytest.mark.integration
     def test_gaia_cloned_on_first_run(self, project_root):
@@ -157,27 +182,19 @@ class TestGaiaSourceCode:
         )
         assert result.returncode == 0
 
-    @pytest.mark.integration
-    def test_gaia_runnable_from_source(self, project_root):
-        """GAIA must be runnable from source."""
-        result = subprocess.run(
-            ["docker", "run", "--rm",
-             "-e", "LEMONADE_BASE_URL=http://test",
-             "gaia-dev:test", "gaia", "--version"],
-            capture_output=True,
-            text=True,
-            timeout=600
-        )
-        assert result.returncode == 0
-
 
 class TestDockerfileDevOptimization:
     """Test that Dockerfile.dev follows best practices."""
 
-    def test_uses_slim_base(self, dockerfile_dev_path):
-        """Should use python:3.12-slim for smaller image."""
+    def test_uses_ubuntu_base(self, dockerfile_dev_path):
+        """Should use ubuntu:24.04 as base image."""
         content = dockerfile_dev_path.read_text()
-        assert "python:3.12-slim" in content
+        assert "ubuntu:24.04" in content
+
+    def test_uses_uv_managed_python(self, dockerfile_dev_path):
+        """Should use uv to install Python instead of system packages."""
+        content = dockerfile_dev_path.read_text()
+        assert "uv python install" in content
 
     def test_cleans_apt_cache(self, dockerfile_dev_path):
         """Should clean apt cache to reduce image size."""
@@ -196,3 +213,20 @@ class TestDockerfileDevOptimization:
         assert "iptables" in content
         assert "ipset" in content
         assert "iproute2" in content
+
+    def test_has_devcontainer_env(self, dockerfile_dev_path):
+        """Should set DEVCONTAINER=true environment variable."""
+        content = dockerfile_dev_path.read_text()
+        assert "DEVCONTAINER=true" in content
+
+    def test_uses_native_claude_installer(self, dockerfile_dev_path):
+        """Should use native Claude Code installer, not npm."""
+        content = dockerfile_dev_path.read_text()
+        assert "claude.ai/install.sh" in content
+        assert "npm install -g @anthropic-ai/claude-code" not in content
+
+    def test_venv_activation_in_zshrc(self, dockerfile_dev_path):
+        """Dockerfile should add venv activation to .zshrc."""
+        content = dockerfile_dev_path.read_text()
+        assert 'source /home/gaia/.venv/bin/activate' in content
+        assert '.zshrc' in content

@@ -64,6 +64,35 @@ class TestEnvironmentConfiguration:
         assert 'git remote add upstream' in content
         assert 'https://github.com/amd/gaia.git' in content
 
+    def test_handles_skip_gaia_clone(self, entrypoint_dev_path):
+        """Should support SKIP_GAIA_CLONE to skip cloning."""
+        content = entrypoint_dev_path.read_text()
+        assert 'SKIP_GAIA_CLONE' in content
+        assert 'Skipping GAIA clone' in content
+
+    def test_entrypoint_activates_venv(self, entrypoint_dev_path):
+        """Entrypoint should activate virtual environment."""
+        content = entrypoint_dev_path.read_text()
+        assert 'source /home/gaia/.venv/bin/activate' in content
+
+    def test_shows_setup_instructions(self, entrypoint_dev_path):
+        """Entrypoint should show first-time setup instructions."""
+        content = entrypoint_dev_path.read_text()
+        assert 'First-time setup' in content
+        assert 'uv pip install' in content  # in instructions, not exec
+
+    def test_no_auto_install(self, entrypoint_dev_path):
+        """Should NOT auto-install GAIA packages (user does this manually)."""
+        content = entrypoint_dev_path.read_text()
+        # Should NOT have the old auto-install code
+        assert 'echo "Installing GAIA dependencies..."' not in content
+        # Instructions are okay, but not actual execution
+        lines = content.split('\n')
+        for line in lines:
+            if 'uv pip install -e' in line:
+                # If found, should be in echo statement (instructions), not actual command
+                assert line.strip().startswith('echo')
+
 
 class TestLemonadeBaseUrlValidation:
     """Test LEMONADE_BASE_URL validation at runtime."""
@@ -94,6 +123,23 @@ class TestLemonadeBaseUrlValidation:
             timeout=30
         )
         assert result.returncode == 0
+
+    @pytest.mark.integration
+    def test_skip_gaia_clone_actually_skips(self, project_root):
+        """SKIP_GAIA_CLONE=true should skip cloning GAIA repository."""
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://localhost:5000/api/v1",
+             "-e", "SKIP_GAIA_CLONE=true",
+             "gaia-dev:test", "echo", "done"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        output = result.stdout + result.stderr
+        assert result.returncode == 0
+        assert "Skipping GAIA clone" in output
+        assert "Cloning GAIA from:" not in output
 
 
 class TestGitHubCLIConfiguration:

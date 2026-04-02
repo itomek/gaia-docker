@@ -8,27 +8,32 @@ This project publishes Docker images to Docker Hub and creates GitHub releases. 
 
 ## Version Management
 
-### VERSION File
+### VERSION.json File
 
-**Location:** `VERSION` (root directory)
+**Location:** `VERSION.json` (root directory)
 
-**Format:** Plain text file containing semantic version number
+**Format:** JSON file containing independent version numbers for each container
 
 **Example:**
-```
-0.15.1
+```json
+{
+  "gaia-linux": "0.15.1",
+  "gaia-dev": "1.0.0"
+}
 ```
 
 **Rules:**
-- Single line, no trailing whitespace
-- Must match available GAIA version on PyPI
+- Valid JSON format
+- **gaia-linux**: Must match available GAIA version on PyPI
+- **gaia-dev**: Independent versioning for development container features
 - Semantic versioning: MAJOR.MINOR.PATCH
 - No "v" prefix in file (added for git tags/releases)
+- CI uses jq to parse: `jq -r '."gaia-linux"' VERSION.json`
 
 **Version alignment:**
-- VERSION file → Docker image tag
-- VERSION file → GAIA_VERSION build arg
-- VERSION file → GitHub release tag (with "v" prefix)
+- VERSION.json → Docker image tags (separate per container)
+- VERSION.json → GAIA_VERSION build args
+- VERSION.json → GitHub release tags (with "v" prefix)
 
 ### Checking GAIA Versions
 
@@ -47,15 +52,20 @@ uv pip index versions amd-gaia
 
 ### Standard Release Workflow
 
-1. **Update VERSION file:**
+1. **Update VERSION.json file:**
    ```bash
-   echo "0.15.1" > VERSION
+   cat > VERSION.json <<EOF
+   {
+     "gaia-linux": "0.15.1",
+     "gaia-dev": "1.0.0"
+   }
+   EOF
    ```
 
 2. **Commit and push to main:**
    ```bash
-   git add VERSION
-   git commit -m "Bump version to 0.15.1"
+   git add VERSION.json
+   git commit -m "Bump gaia-linux to 0.15.1"
    git push origin main
    ```
 
@@ -68,14 +78,14 @@ uv pip index versions amd-gaia
 ### What Gets Created
 
 **Docker Hub:**
-- Image: `itomek/gaia-dev:0.15.1`
-- Image: `itomek/gaia-dev:sha-<git-sha>`
-- README updated from repository
+- Images: `itomek/gaia-linux:0.15.1`, `itomek/gaia-dev:1.0.0`
+- SHA tags: `itomek/gaia-linux:sha-<git-sha>`, `itomek/gaia-dev:sha-<git-sha>`
+- READMEs updated from repository
 
 **GitHub:**
-- Release: `v0.15.1`
-- Tag: `v0.15.1`
-- Release notes: "Docker image published: itomek/gaia-dev:0.15.1"
+- Releases: `v0.15.1` (gaia-linux), `v1.0.0` (gaia-dev)
+- Tags: Created for each container version
+- Release notes: "Docker images published: itomek/gaia-linux:0.15.1, itomek/gaia-dev:1.0.0"
 
 ## Release Checklist
 
@@ -84,10 +94,12 @@ uv pip index versions amd-gaia
 - [ ] Check latest GAIA version on PyPI: `pip index versions amd-gaia`
 - [ ] Verify GAIA version works: `pip install amd-gaia[dev,mcp,eval,rag]==X.Y.Z`
 - [ ] Review recent commits for breaking changes
-- [ ] Update VERSION file to target version
+- [ ] Update VERSION.json file with target versions
+- [ ] Validate JSON format: `jq . VERSION.json`
 - [ ] Run tests locally: `uv run pytest`
-- [ ] Test Docker build locally: `docker build -t test .`
-- [ ] Verify container starts: `docker run -it test`
+- [ ] Test Docker builds locally: `docker build -f gaia-linux/Dockerfile -t test-linux .`
+- [ ] Test Docker builds locally: `docker build -f gaia-dev/Dockerfile -t test-dev .`
+- [ ] Verify containers start with required env vars
 
 ### Post-Release
 
@@ -99,11 +111,16 @@ uv pip index versions amd-gaia
 
 ### Rollback (if needed)
 
-1. **Revert VERSION file:**
+1. **Revert VERSION.json file:**
    ```bash
-   echo "0.15.0" > VERSION
-   git add VERSION
-   git commit -m "Revert version to 0.15.0"
+   cat > VERSION.json <<EOF
+   {
+     "gaia-linux": "0.15.0",
+     "gaia-dev": "1.0.0"
+   }
+   EOF
+   git add VERSION.json
+   git commit -m "Revert gaia-linux to 0.15.0"
    git push origin main
    ```
 

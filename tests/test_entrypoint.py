@@ -50,10 +50,15 @@ class TestDependencyInstallation:
 class TestEnvironmentConfiguration:
     """Test environment variable handling."""
 
-    def test_respects_gaia_version_env(self, entrypoint_path):
-        """Should respect GAIA_VERSION environment variable."""
+    def test_installs_latest_when_no_version_set(self, entrypoint_path):
+        """Should install latest from PyPI when GAIA_VERSION is not set."""
         content = entrypoint_path.read_text()
-        assert 'GAIA_VERSION="${GAIA_VERSION:-0.15.1}"' in content
+        assert 'No GAIA_VERSION specified' in content or 'installing latest' in content
+
+    def test_installs_specific_version_when_set(self, entrypoint_path):
+        """Should install specific version when GAIA_VERSION is set."""
+        content = entrypoint_path.read_text()
+        assert '==${GAIA_VERSION}' in content
 
     def test_requires_lemonade_base_url_env(self, entrypoint_path):
         """Should require LEMONADE_BASE_URL environment variable."""
@@ -65,6 +70,37 @@ class TestEnvironmentConfiguration:
         """Should respect SKIP_INSTALL environment variable."""
         content = entrypoint_path.read_text()
         assert 'SKIP_INSTALL' in content
+
+class TestVersionLogging:
+    """Test that entrypoint logs the installed GAIA version."""
+
+    def test_entrypoint_logs_installed_version(self, entrypoint_path):
+        """Entrypoint should log the actual installed GAIA version after install."""
+        content = entrypoint_path.read_text()
+        assert 'uv" pip show amd-gaia' in content or 'uv pip show amd-gaia' in content, \
+            "Entrypoint should query installed GAIA version with 'uv pip show'"
+        assert 'Installed GAIA version:' in content, \
+            "Entrypoint should log the installed version"
+
+
+class TestInstallErrorHandling:
+    """Test that entrypoint handles install failures gracefully."""
+
+    def test_entrypoint_has_install_error_handling(self, entrypoint_path):
+        """Entrypoint should handle uv pip install failures with helpful messages."""
+        content = entrypoint_path.read_text()
+        assert 'Failed to install amd-gaia' in content, \
+            "Entrypoint should display a clear error message when install fails"
+        assert 'PyPI' in content and ('unreachable' in content or 'unavailable' in content), \
+            "Error message should suggest checking PyPI connectivity"
+
+    def test_entrypoint_exits_on_install_failure(self, entrypoint_path):
+        """Entrypoint should exit non-zero when install fails."""
+        content = entrypoint_path.read_text()
+        # The install block should use if ! ... ; then ... exit 1 pattern
+        assert 'if ! sudo' in content, \
+            "Entrypoint should use 'if !' pattern to catch install failures"
+
 
 class TestLemonadeBaseUrlValidation:
     """Test LEMONADE_BASE_URL validation at runtime."""
@@ -111,9 +147,34 @@ class TestLemonadeBaseUrlValidation:
 class TestHostDirectoryMount:
     """Test optional host directory mounting."""
 
-    def test_creates_host_mount_point(self, entrypoint_path):
-        """Should create /host directory for optional mounting."""
-        content = entrypoint_path.read_text()
-        # Check that /host is mentioned or created
-        # This might be in Dockerfile instead
-        pass
+    @pytest.mark.integration
+    def test_host_directory_exists(self, project_root):
+        """Container should have /host directory for optional mounting."""
+        import subprocess
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://localhost:5000/api/v1",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "ls", "-ld", "/host"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        assert result.returncode == 0
+        assert "drwxr" in result.stdout or "drwx" in result.stdout
+
+    @pytest.mark.integration
+    def test_host_directory_writable_by_gaia_user(self, project_root):
+        """The /host directory should be writable by gaia user."""
+        import subprocess
+        result = subprocess.run(
+            ["docker", "run", "--rm",
+             "-e", "LEMONADE_BASE_URL=http://localhost:5000/api/v1",
+             "-e", "SKIP_INSTALL=true",
+             "gaia-linux:test", "sh", "-c", "touch /host/test_file && rm /host/test_file && echo success"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        assert result.returncode == 0
+        assert "success" in result.stdout
